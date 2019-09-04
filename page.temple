@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <title>Soulless Web Pages</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="height=device-height,initial-scale=1,user-scalable=no,maximum-scale=1,,user-scalable=no"/>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <!-- *head* -->
+    <style type="text/css">
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        font-size: 24px;
+      }
+      #swgRoot {
+        opacity: 0;
+      }
+      .swg-root {
+        overflow: hidden;
+        position: relative;
+      }
+      .swg:hover {
+        background-color: rgba(0, 0, 0, 0.20);
+      }
+      .swg {
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+      }
+      .music-box {
+        position: fixed;
+        right: 0px;
+        top: 0px;
+        z-index: 999;
+      }
+      .music-box .music-play {
+        display: none;
+        animation-name: circle;
+        animation-duration: 5s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+      .music-box .music-close {
+        display: block;
+      }
+      .music-box img {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        padding: 10px;
+      }
+      @keyframes circle{
+        0%{ transform:rotate(0deg); }
+        100%{ transform:rotate(360deg); }
+      }
+      <!-- css-output -->
+    </style>
+    
+  </head>
+  <body>
+    <!-- page-output -->
+    <!-- music-output -->
+    <!-- script-output -->
+  </body>
+</html>
