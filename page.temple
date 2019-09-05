@@ -17,7 +17,7 @@
       #swgRoot {
         opacity: 0;
       }
-      .swg-root {
+      .so-root {
         overflow: hidden;
         position: relative;
       }
@@ -28,31 +28,28 @@
         background-repeat: no-repeat;
         background-size: 100% 100%;
       }
-      .music-box {
+      .soulless {
+        position: absolute;
+      }
+      .control-box {
+        background-color: aquamarine;
         position: fixed;
-        right: 0px;
-        top: 0px;
-        z-index: 999;
+        right: 0;
+        top: 0;
+        width: 300px;
+        height: 500px;
       }
-      .music-box .music-play {
-        display: none;
-        animation-name: circle;
-        animation-duration: 5s;
-        animation-timing-function: linear;
-        animation-iteration-count: infinite;
+      h5, pre {
+        margin: 0;
+        padding: 0;
       }
-      .music-box .music-close {
-        display: block;
-      }
-      .music-box img {
-        cursor: pointer;
-        width: 30px;
-        height: 30px;
-        padding: 10px;
-      }
-      @keyframes circle{
-        0%{ transform:rotate(0deg); }
-        100%{ transform:rotate(360deg); }
+      pre {
+        height: 200px;
+        background-color: #1e1e1e;
+        color: white;
+        font-size: 12px;
+        overflow: auto;
+        padding: 7px;
       }
       <!-- css-output -->
     </style>
@@ -60,7 +57,14 @@
   </head>
   <body>
     <!-- page-output -->
-    <!-- music-output -->
+    <div class="control-box">
+      <h5>HTML代码</h5>
+      <pre id="htm"></pre>
+      <h5>pug代码</h5>
+      <pre id="pug"></pre>
+      <h5>css代码</h5>
+      <pre id="sty"></pre>
+    </div>
     <!-- script-output -->
   </body>
 </html>

@@ -1,45 +1,51 @@
 const fs = require('fs')
-const args = require('args')
 const PSD = require('psd')
 const imagemin = require('imagemin')
 const imageminPngquant = require('imagemin-pngquant')
 
 
+let infoData = {
+
+}
 
 
-function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, isBG) {
+
+function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, isBG, task) {
   if (elementInfo.type === 'layer') {
-    domHtml += `<img class="swg-item swg-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${fileName}.png" />\r\n    `
+    if (!infoData[`so-${groupList.join('-')}`]) {
+      infoData[`so-${groupList.join('-')}`] = {}
+    }
+    // 记录下来
+    infoData[`so-${groupList.join('-')}`].pug = `img.soulless.so-${groupList.join('-')}.item-${ind} ${isBG ? 'bg' : ''}(width="${elementInfo.width}", height="${elementInfo.height}", src="@|${task}-${fileName}.png|")`
+    infoData[`so-${groupList.join('-')}`].html = `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
+    
+    domHtml += `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
     return [styleList, domHtml]
   } else {
-    domHtml += `<div class="swg-item swg-${groupList.join('-')} item-${ind}">`
+    domHtml += `<div class="soulless so-${groupList.join('-')} item-${ind}">`
     return [styleList, domHtml]
   }
 }
 
 // 缓存文件
 function cacheFile (layerId, element, fileTemp, groupList, fileName) {
-  if (fileTemp[layerId] === undefined) {
-    fileTemp[layerId] = `${groupList.join('-')}`
-    // 导出图片
-    const imagePath = `./${fileName}/${groupList.join('-')}.png`
-    if (element.layer.image && element.type === 'layer') {
-      // console.log(`保存图片: ${imagePath}`)
-      element.layer.image.saveAsPng(imagePath).then((e) => {
-        // 压缩图片
-        // imagemin([imagePath], `./${fileName}/`, {
-        //   plugins: [
-        //     imageminPngquant({
-        //       quality: [0.6, 0.8]
-        //     })
-        //   ]
-        // })
-      })
-    } else {
-      console.log(`没有图层: ${imagePath}`)
-    }
+  fileTemp[layerId] = `${groupList.join('-')}`
+  // 导出图片
+  const imagePath = `./${fileName}/${fileName}-${groupList.join('-')}.png`
+  if (element.layer.image && element.type === 'layer') {
+    // console.log(`保存图片: ${imagePath}`)
+    element.layer.image.saveAsPng(imagePath).then((e) => {
+      // 压缩图片
+      // imagemin([imagePath], `./${fileName}/`, {
+      //   plugins: [
+      //     imageminPngquant({
+      //       quality: [0.6, 0.8]
+      //     })
+      //   ]
+      // })
+    })
   } else {
-    console.log(`图层 [${element.name}] 与文件 [${fileTemp[layerId]}] 重复,智能忽略!`)
+    console.log(`没有图层: ${imagePath}`)
   }
   return fileTemp
 }
@@ -85,8 +91,8 @@ function realOutPut (fileName, node, groupList) {
       `width: ${node.psd.header.cols}px`,
       `height: ${node.psd.header.rows}px`,
     )
-    styleData = `.swg-root {${styleList.join('; ')};}\r\n      `
-    domHtml = `<div class="swg-root" width="${node.width}" height="${node.height}">`
+    styleData = `.so-root {${styleList.join('; ')};}\r\n      `
+    domHtml = `<div class="so-root" width="${node.width}" height="${node.height}">`
   } else {
     // 如果不是根节点 会有上下左右位置
     styleList.push(
@@ -98,8 +104,8 @@ function realOutPut (fileName, node, groupList) {
       `width: ${node.width}px`,
       `height: ${node.height}px`,
     )
-    styleData = `.swg-${groupList.join('-')} {${styleList.join('; ')};}\r\n      `
-    domHtml = `<div class="swg-${groupList.join('-')} item-${itemIndex}">`
+    styleData = `.so-${groupList.join('-')} {${styleList.join('; ')};}\r\n      `
+    domHtml = `<div class="so-${groupList.join('-')} item-${itemIndex}">`
   }
   
   for (let ind in childrenNodeList) {
@@ -142,16 +148,19 @@ function realOutPut (fileName, node, groupList) {
       'position: absolute',
       `left: ${leftValue}px`,
       `top: ${topValue}px`,
-      `right: ${rightValue}px`,
-      `bottom: ${bottomValue}px`,
       `opacity: ${elementInfo.opacity}`,
       `z-index: ${-ind}`
     ]
     const isBG = leftValue == 0  && topValue == 0 && rightValue == 0 && bottomValue == 0
-    const outPutData = getOutPut(elementInfo, styleList, domHtml, groupListCopy, fileTemp[layerId], ind, isBG)
+    const outPutData = getOutPut(elementInfo, styleList, domHtml, groupListCopy, fileTemp[layerId], ind, isBG, fileName)
     styleList = outPutData[0]
     domHtml = outPutData[1]
-    styleData += `.swg-${groupListCopy.join('-')} {${styleList.join('; ')};}\r\n      `
+    styleData += `.so-${groupListCopy.join('-')} {${styleList.join('; ')};}\r\n      `
+    // 记录下来
+    if (!infoData[`so-${groupListCopy.join('-')}`]) {
+      infoData[`so-${groupListCopy.join('-')}`] = {}
+    }
+    infoData[`so-${groupListCopy.join('-')}`].style = `.so-${groupListCopy.join('-')} {${styleList.join('; ')};}`
   }
   domHtml += `</div>`
   return {
@@ -184,7 +193,7 @@ if (!process.argv[3]) {
   fileName = process.argv[3]
 }
 
-console.log(fs.existsSync(`./${fileName}`))
+// console.log(fs.existsSync(`./${fileName}`))
 if (!fs.existsSync(`./${fileName}`)) {
   fs.mkdirSync(`./${fileName}`)
 }
@@ -207,4 +216,45 @@ styleData += outPut.style
 
 htmlTemple = htmlTemple.replace(`<!-- page-output -->`, domHtml)
 htmlTemple = htmlTemple.replace(`<!-- css-output -->`, styleData)
+htmlTemple = htmlTemple.replace(`<!-- script-output -->`, `
+<script>
+  var checkList = []
+  var infoData = ${JSON.stringify(infoData)}
+  var imgList = document.getElementsByTagName('img')
+  Array.prototype.remove = function(val) { 
+    var index = this.indexOf(val); 
+    if (index > -1) { 
+      this.splice(index, 1); 
+    } 
+  }
+  function creatData () {
+    let htm = ''
+    let pug = ''
+    let style = ''
+    checkList.forEach(key => {
+      const element = infoData[key]
+      console.log(element.html)
+      htm += element.html + '\\r\\n'
+      pug += element.pug + '\\r\\n'
+      style += element.style + '\\r\\n'
+    })
+    document.getElementById('htm').innerText = htm
+    document.getElementById('pug').innerText = pug
+    document.getElementById('sty').innerText = style
+  }
+  for (let ind = 0; ind < imgList.length; ind++) {
+    imgList[ind].onclick = function (e) {
+      const key = e.target.classList[1]
+      // console.log(e.target.classList[1])
+      if (checkList.includes(key)) {
+        checkList.remove(key)
+      } else {
+        checkList.push(key)
+      }
+      creatData()
+      console.log(checkList)
+    }
+  }
+  
+</script>`)
 fs.writeFileSync(`./${fileName}/index.html`, htmlTemple)
