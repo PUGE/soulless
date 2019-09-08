@@ -1,25 +1,37 @@
+#!/usr/bin/env node
+
 const fs = require('fs')
 const PSD = require('psd')
 const imagemin = require('imagemin')
 const imageminPngquant = require('imagemin-pngquant')
 
-
-let infoData = {
-
-}
-
-
+let infoData = {}
 
 function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, isBG, task) {
+  // console.log(elementInfo)
   if (elementInfo.type === 'layer') {
+    // 取出是否包含标签信息
+    const tagTest = elementInfo.name.match(/\[-(\S*)-\]/)
+    const tag = tagTest ? tagTest[1] : 'img'
     if (!infoData[`so-${groupList.join('-')}`]) {
       infoData[`so-${groupList.join('-')}`] = {}
     }
-    // 记录下来
-    infoData[`so-${groupList.join('-')}`].pug = `img.soulless.so-${groupList.join('-')}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", style="width:${elementInfo.width}px; height: ${elementInfo.height}px;", src="@|${task}-${fileName}.png|")`
-    infoData[`so-${groupList.join('-')}`].html = `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
+    switch (tag) {
+      // 记录下来
+      case 'img': {
+        infoData[`so-${groupList.join('-')}`].pug = `img.soulless.so-${groupList.join('-')}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", style="src="@|${task}-${fileName}.png|")`
+        infoData[`so-${groupList.join('-')}`].html = `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
+        domHtml += `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
+        break
+      }
+      case 'input': {
+        infoData[`so-${groupList.join('-')}`].pug = `input.soulless.so-${groupList.join('-')}.item-${ind}(style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
+        infoData[`so-${groupList.join('-')}`].html = `<input type="text" class="soulless so-${groupList.join('-')} item-${ind}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>`
+        domHtml += `<input type="text" class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>\r\n    `
+        break
+      }
+    }
     
-    domHtml += `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
     return [styleList, domHtml]
   } else {
     domHtml += `<div class="soulless so-${groupList.join('-')} item-${ind}">`
