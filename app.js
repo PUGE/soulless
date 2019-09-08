@@ -148,9 +148,12 @@ function realOutPut (fileName, node, groupList) {
       'position: absolute',
       `left: ${leftValue}px`,
       `top: ${topValue}px`,
-      `opacity: ${elementInfo.opacity}`,
       `z-index: ${-ind}`
     ]
+    // 如果图层有透明度则还要读取出透明度
+    if (elementInfo.opacity !== 1) {
+      styleList.push(`opacity: ${elementInfo.opacity}`)
+    }
     const isBG = leftValue == 0  && topValue == 0 && rightValue == 0 && bottomValue == 0
     const outPutData = getOutPut(elementInfo, styleList, domHtml, groupListCopy, fileTemp[layerId], ind, isBG, fileName)
     styleList = outPutData[0]
