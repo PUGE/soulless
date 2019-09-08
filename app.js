@@ -72,6 +72,7 @@ function realOutPut (fileName, node, groupList) {
   const childrenNodeList = node.children()
   // 文件缓存
   let fileTemp = {}
+  // console.log(groupList)
   const itemIndex = groupList.length > 0 ? parseInt(groupList[groupList.length - 1]) : 0
   // const parent = node
 
@@ -148,7 +149,7 @@ function realOutPut (fileName, node, groupList) {
       'position: absolute',
       `left: ${leftValue}px`,
       `top: ${topValue}px`,
-      `z-index: ${-ind}`
+      `z-index: ${childrenNodeList.length - ind}`
     ]
     // 如果图层有透明度则还要读取出透明度
     if (elementInfo.opacity !== 1) {
