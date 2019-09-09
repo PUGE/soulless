@@ -187,7 +187,7 @@ function realOutPut (fileName, node, groupList) {
 
 
 // 读取模板内容
-let temple = fs.readFileSync('./page.temple', 'utf-8')
+let temple = fs.readFileSync(__dirname + '\\page.temple', 'utf-8')
 
 // console.log(process.argv)
 let fileName = 'dist'
