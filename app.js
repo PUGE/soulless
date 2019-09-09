@@ -236,7 +236,7 @@ htmlTemple = htmlTemple.replace(`<!-- script-output -->`, `
 <script>
   var checkList = []
   var infoData = ${JSON.stringify(infoData)}
-  var imgList = document.getElementsByTagName('img')
+  var soulless = document.getElementsByClassName('soulless')
   Array.prototype.remove = function(val) { 
     var index = this.indexOf(val); 
     if (index > -1) { 
@@ -258,8 +258,8 @@ htmlTemple = htmlTemple.replace(`<!-- script-output -->`, `
     document.getElementById('pug').innerText = pug
     document.getElementById('sty').innerText = style
   }
-  for (let ind = 0; ind < imgList.length; ind++) {
-    imgList[ind].onclick = function (e) {
+  for (let ind = 0; ind < soulless.length; ind++) {
+    soulless[ind].onclick = function (e) {
       const key = e.target.classList[1]
       // console.log(e.target.classList[1])
       if (checkList.includes(key)) {
