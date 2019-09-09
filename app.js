@@ -176,7 +176,7 @@ function realOutPut (fileName, node, groupList) {
     if (!infoData[`so-${groupListCopy.join('-')}`]) {
       infoData[`so-${groupListCopy.join('-')}`] = {}
     }
-    infoData[`so-${groupListCopy.join('-')}`].style = `.so-${groupListCopy.join('-')} {${styleList.join('; ')};}`
+    infoData[`so-${groupListCopy.join('-')}`].style = `.so-${groupListCopy.join('-')} {\r\n  ${styleList.join(';\r\n  ')};\r\n}`
   }
   domHtml += `</div>`
   return {
@@ -254,9 +254,9 @@ htmlTemple = htmlTemple.replace(`<!-- script-output -->`, `
       pug += element.pug + '\\r\\n'
       style += element.style + '\\r\\n'
     })
-    document.getElementById('htm').innerText = htm
-    document.getElementById('pug').innerText = pug
-    document.getElementById('sty').innerText = style
+    document.getElementById('htm').innerText = htm + ' '
+    document.getElementById('pug').innerText = pug + ' '
+    document.getElementById('sty').innerText = style + ' '
   }
   for (let ind = 0; ind < soulless.length; ind++) {
     soulless[ind].onclick = function (e) {
