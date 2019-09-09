@@ -19,7 +19,7 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
     switch (tag) {
       // 记录下来
       case 'img': {
-        infoData[`so-${groupList.join('-')}`].pug = `img.soulless.so-${groupList.join('-')}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", style="src="@|${task}-${fileName}.png|")`
+        infoData[`so-${groupList.join('-')}`].pug = `img.soulless.so-${groupList.join('-')}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", src="@|${task}-${fileName}.png|")`
         infoData[`so-${groupList.join('-')}`].html = `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
         domHtml += `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
         break
