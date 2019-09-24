@@ -8,40 +8,64 @@ const imageminPngquant = require('imagemin-pngquant')
 let infoData = {}
 
 function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, isBG, task) {
-  // console.log(elementInfo)
+  const groupListValue = groupList.join('-')
+  // console.log(styleList)
   if (elementInfo.type === 'layer') {
-    // 取出是否包含标签信息
-    const tagTest = elementInfo.name.match(/\[-(\S*)-\]/)
-    const tag = tagTest ? tagTest[1] : 'img'
-    if (!infoData[`so-${groupList.join('-')}`]) {
-      infoData[`so-${groupList.join('-')}`] = {}
+    if (!infoData[`so-${groupListValue}`]) {
+      infoData[`so-${groupListValue}`] = {}
     }
-    switch (tag) {
-      // 记录下来
-      case 'img': {
-        infoData[`so-${groupList.join('-')}`].pug = `img.soulless.so-${groupList.join('-')}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", src="@|${task}-${fileName}.png|")`
-        infoData[`so-${groupList.join('-')}`].html = `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
-        domHtml += `<img class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
-        break
+    // 判断是否为文本
+    if (elementInfo.text == undefined) {
+      // 取出是否包含标签信息
+      const tagTest = elementInfo.name.match(/\[-(\S*)-\]/)
+      const tag = tagTest ? tagTest[1] : 'img'
+
+      switch (tag) {
+        // 记录下来
+        case 'img': {
+          infoData[`so-${groupListValue}`].pug = `img.soulless.so-${groupListValue}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", src="@|${task}-${fileName}.png|")`
+          infoData[`so-${groupListValue}`].html = `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
+          domHtml += `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
+          break
+        }
+        case 'input': {
+          infoData[`so-${groupListValue}`].pug = `input.soulless.so-${groupListValue}.item-${ind}(style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
+          infoData[`so-${groupListValue}`].html = `<input type="text" class="soulless so-${groupListValue} item-${ind}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>`
+          domHtml += `<input type="text" class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>\r\n    `
+          break
+        }
       }
-      case 'input': {
-        infoData[`so-${groupList.join('-')}`].pug = `input.soulless.so-${groupList.join('-')}.item-${ind}(style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
-        infoData[`so-${groupList.join('-')}`].html = `<input type="text" class="soulless so-${groupList.join('-')} item-${ind}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>`
-        domHtml += `<input type="text" class="soulless so-${groupList.join('-')} item-${ind} ${isBG ? 'bg' : ''}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>\r\n    `
-        break
+    } else {
+      // 有问题待修复
+      const textInfo = elementInfo.text
+      const color = textInfo.font.colors[0]
+      const text = textInfo.value.replace(/\r/g, '<br>')
+      styleList.push(
+        `width: ${elementInfo.width}px`,
+        `font-family: '${textInfo.font.name}'`,
+        `font-size: ${parseInt(textInfo.font.sizes[0] * textInfo.transform.yy)}px`,
+        `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`
+      )
+      // 判断是否有文字对齐方式
+      if (textInfo.font.alignment[0]) {
+        styleList.push(`text-align: ${textInfo.font.alignment[0]}`)
       }
+      infoData[`so-${groupListValue}`].pug = `p.soulless.so-${groupListValue}.item-${ind} ${text}`
+      infoData[`so-${groupListValue}`].html = `<p type="text" class="soulless so-${groupListValue} item-${ind}"/>${text}</p>`
+      domHtml += `<p class="soulless so-${groupListValue} so-text item-${groupList[groupList.length - 1]}">${text}</p>`
     }
-    
     return [styleList, domHtml]
   } else {
-    domHtml += `<div class="soulless so-${groupList.join('-')} item-${ind}">`
+    domHtml += `<div class="soulless so-${groupListValue} item-${ind}">`
     return [styleList, domHtml]
   }
 }
 
+
 // 缓存文件
 function cacheFile (layerId, element, fileTemp, groupList, fileName) {
-  fileTemp[layerId] = `${groupList.join('-')}`
+  const groupListValue = groupList.join('-')
+  fileTemp[layerId] = `${groupListValue}`
   // 导出图片
   const imagePath = `./${fileName}/${fileName}-${groupList.join('-')}.png`
   if (element.layer.image && element.type === 'layer') {

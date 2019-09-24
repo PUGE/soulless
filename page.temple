@@ -94,6 +94,10 @@
         overflow: auto;
         height: 100%;
       }
+      .so-text {
+        margin: 0;
+        padding: 0;
+      }
       <!-- css-output -->
     </style>
     
