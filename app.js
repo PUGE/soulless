@@ -42,6 +42,7 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
       const text = textInfo.value.replace(/\r/g, '<br>')
       styleList.push(
         `width: ${elementInfo.width}px`,
+        `height: ${elementInfo.height}px`,
         `font-family: '${textInfo.font.name}'`,
         `font-size: ${parseInt(textInfo.font.sizes[0] * textInfo.transform.yy)}px`,
         `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`
