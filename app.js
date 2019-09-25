@@ -40,11 +40,12 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
       const textInfo = elementInfo.text
       const color = textInfo.font.colors[0]
       const text = textInfo.value.replace(/\r/g, '<br>')
+      // console.log(elementInfo)
       styleList.push(
         `width: ${elementInfo.width}px`,
         `height: ${elementInfo.height}px`,
         `font-family: '${textInfo.font.name}'`,
-        `font-size: ${parseInt(textInfo.font.sizes[0] * textInfo.transform.yy)}px`,
+        `font-size: ${parseInt(textInfo.font.sizes[0])}px`,
         `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`
       )
       // 判断是否有文字对齐方式
