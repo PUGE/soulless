@@ -29,7 +29,7 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
           break
         }
         case 'input': {
-          infoData[`so-${groupListValue}`].pug = `input.soulless.so-${groupListValue}.item-${ind}(style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
+          infoData[`so-${groupListValue}`].pug = `input.soulless.so-${groupListValue}.item-${ind}(type="text", style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
           infoData[`so-${groupListValue}`].html = `<input type="text" class="soulless so-${groupListValue} item-${ind}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>`
           domHtml += `<input type="text" class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>\r\n    `
           break
