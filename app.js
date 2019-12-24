@@ -45,11 +45,11 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
         `width: ${elementInfo.width}px`,
         `height: ${elementInfo.height}px`,
         `font-family: '${textInfo.font.name}'`,
-        `font-size: ${parseInt(textInfo.font.sizes[0])}px`,
+        `font-size: ${Math.floor(textInfo.font.sizes[0])}px`,
         `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`
       )
       // 判断是否有文字对齐方式
-      if (textInfo.font.alignment[0]) {
+      if (textInfo.font.alignment[0] && textInfo.font.alignment[0] !== 'left') {
         styleList.push(`text-align: ${textInfo.font.alignment[0]}`)
       }
       infoData[`so-${groupListValue}`].pug = `p.soulless.so-${groupListValue}.item-${ind} ${text}`
@@ -119,7 +119,7 @@ function realOutPut (fileName, node, groupList) {
 
   // 根节点和子节点通用样式
   let styleList = [
-    `z-index: ${-itemIndex}`
+    `z-index: ${itemIndex}`
   ]
 
   // 初始化样式临时存储字段
