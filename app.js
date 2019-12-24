@@ -2,14 +2,14 @@
 
 const fs = require('fs')
 const PSD = require('psd')
-const imagemin = require('imagemin')
-const imageminPngquant = require('imagemin-pngquant')
 
 let infoData = {}
 
 function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, isBG, task) {
-  const groupListValue = groupList.join('-')
-  // console.log(styleList)
+  // console.log(groupList)
+  let groupListValue = groupList.join('-')
+  if (!groupListValue) groupListValue = 'root'
+  
   if (elementInfo.type === 'layer') {
     if (!infoData[`so-${groupListValue}`]) {
       infoData[`so-${groupListValue}`] = {}
@@ -23,13 +23,13 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
       switch (tag) {
         // 记录下来
         case 'img': {
-          infoData[`so-${groupListValue}`].pug = `img.soulless.so-${groupListValue}.item-${ind}(width="${elementInfo.width}", height="${elementInfo.height}", src="@|${task}-${fileName}.png|")`
-          infoData[`so-${groupListValue}`].html = `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />`
+          infoData[`so-${groupListValue}`].pug = `img.soulless.so-${groupListValue}.item-${ind}(src="@|${task}-${fileName}.png|")`
+          infoData[`so-${groupListValue}`].html = `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" src="./${task}-${fileName}.png" />`
           domHtml += `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
           break
         }
         case 'input': {
-          infoData[`so-${groupListValue}`].pug = `input.soulless.so-${groupListValue}.item-${ind}(type="text", style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
+          infoData[`so-${groupListValue}`].pug = `input.soulless.so-${groupListValue}.item-${ind}(type="text" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
           infoData[`so-${groupListValue}`].html = `<input type="text" class="soulless so-${groupListValue} item-${ind}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>`
           domHtml += `<input type="text" class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>\r\n    `
           break
@@ -40,7 +40,8 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
       const textInfo = elementInfo.text
       const color = textInfo.font.colors[0]
       const text = textInfo.value.replace(/\r/g, '<br>')
-      // console.log(elementInfo)
+      console.log(textInfo)
+      
       styleList.push(
         `width: ${elementInfo.width}px`,
         `height: ${elementInfo.height}px`,
@@ -105,106 +106,106 @@ function getLayerID (layer) {
   return "" + layer.image.obj.numPixels + layer.image.obj.length + layer.image.obj.opacity
 }
 
-function realOutPut (fileName, node, groupList) {
+function handleGroup (fileName, node, groupList, itemIndex) {
   const nodeParent = node.parent
-  const childrenNodeList = node.children()
+  let groupStyle = [
+    'position: absolute',
+    `left: ${node.left - (nodeParent ? nodeParent.left : 0)}px`,
+    `top: ${node.top - (nodeParent ? nodeParent.top: 0)}px`,
+    `width: ${node.width}px`,
+    `height: ${node.height}px`,
+    `z-index: ${itemIndex}`
+  ]
+  // console.log(groupList)
+  const groupStr = groupList.length > 0 ? groupList.join('-') : 'root'
+  let domHtml = `<div class="so-${groupStr} item-${itemIndex}">`
+  let styleData = `.so-${groupStr} {${groupStyle.join('; ')};}\r\n      `
+  // 递归处理子节点
+  console.log(`---------------------------------------`)
+  console.log(`处理分组: ${node.name}`)
+  const childrenList =  node.children()
+  for (const ind in childrenList) {
+    if (childrenList.hasOwnProperty(ind)) {
+      const childrenNode = childrenList[ind];
+      let groupListCopy = JSON.parse(JSON.stringify(groupList))
+      groupListCopy.push(childrenList.length - ind)
+      // console.log(childrenNode)
+      const outPut = realOutPut(fileName, childrenNode, groupListCopy)
+      // console.log(outPut.style + '\r\n')
+      domHtml += outPut.html
+      styleData += outPut.style   
+    }
+  }
+  return {
+    html: domHtml + '</div>',
+    style: styleData
+  }
+}
+
+function realOutPut (fileName, node, groupList) {
   // 文件缓存
   let fileTemp = {}
-  // console.log(groupList)
+  
   const itemIndex = groupList.length > 0 ? parseInt(groupList[groupList.length - 1]) : 0
+  // console.log(itemIndex)
   // const parent = node
 
   // 初始化html存储字段
   let domHtml = ''
 
-  // 根节点和子节点通用样式
-  let styleList = [
-    `z-index: ${itemIndex}`
-  ]
-
   // 初始化样式临时存储字段
   let styleData = ``
-  if (node.isRoot()) {
-    styleList.push(
-      'position: relative',
-      `width: ${node.psd.header.cols}px`,
-      `height: ${node.psd.header.rows}px`,
-    )
-    styleData = `.so-root {${styleList.join('; ')};}\r\n      `
-    domHtml = `<div class="so-root" width="${node.width}" height="${node.height}">`
-  } else {
-    // 如果不是根节点 会有上下左右位置
-    styleList.push(
-      'position: absolute',
-      `left: ${node.left - nodeParent.left}px`,
-      `top: ${node.top - nodeParent.top}px`,
-      `right: ${nodeParent.right - node.right}px`,
-      `bottom: ${nodeParent.bottom - node.bottom}px`,
-      `width: ${node.width}px`,
-      `height: ${node.height}px`,
-    )
-    styleData = `.so-${groupList.join('-')} {${styleList.join('; ')};}\r\n      `
-    domHtml = `<div class="so-${groupList.join('-')} item-${itemIndex}">`
+  const elementInfo = node.export()
+  // 跳过空图层
+  if (isEmptyLayer(elementInfo)) {
+    return {
+      html: domHtml,
+      style: styleData
+    }
   }
+  // 判断是否为组
+  if (node.type === 'group' || node.isRoot()) {
+    const outPut = handleGroup(fileName, node, groupList, itemIndex)
+    domHtml += outPut.html
+    styleData += outPut.style
+    return {
+      html: domHtml,
+      style: styleData
+    }
+  }
+  // 如果不是组则处理单个图层
+  console.log(`—— 处理图层: ${node.name}`)
+  // 从文件缓存中取出是否以前生成过此图层
+  const layerId = getLayerID(node.layer)
+  fileTemp = cacheFile(layerId, node, fileTemp, groupList, fileName)
+
+  const leftValue = elementInfo.left - node.parent.left
+  const topValue = elementInfo.top - node.parent.top
+  const rightValue = node.parent.right - elementInfo.right
+  const bottomValue = node.parent.bottom - elementInfo.bottom
+  let styleList = [
+    'position: absolute',
+    `left: ${leftValue}px`,
+    `top: ${topValue}px`,
+    `z-index: ${itemIndex}`
+  ]
+  // 如果图层有透明度则还要读取出透明度
+  if (elementInfo.opacity !== 1) {
+    styleList.push(`opacity: ${elementInfo.opacity}`)
+  }
+  const isBG = leftValue == 0  && topValue == 0 && rightValue == 0 && bottomValue == 0
+  const outPutData = getOutPut(elementInfo, styleList, domHtml, groupList, fileTemp[layerId], itemIndex, isBG, fileName)
+  styleList = outPutData[0]
+  domHtml = outPutData[1]
+  styleData += `.so-${groupList.join('-')} {${styleList.join('; ')};}\r\n      `
+  // 记录下来
+  if (!infoData[`so-${groupList.join('-')}`]) {
+    infoData[`so-${groupList.join('-')}`] = {}
+  }
+  infoData[`so-${groupList.join('-')}`].style = `.so-${groupList.join('-')} {\r\n  ${styleList.join(';\r\n  ')};\r\n}`
   
-  for (let ind in childrenNodeList) {
-    const element = childrenNodeList[ind]
-    const elementInfo = element.export()
-    let groupListCopy = JSON.parse(JSON.stringify(groupList))
-    groupListCopy.push(ind)
-    // console.log(element)
-    // if (element.name == '改革1') {
-    //   console.log(element.type, element.text)
-    //   console.log(element.export())
-    // }
-    
-    // 跳过空图层
-    if (isEmptyLayer(elementInfo)) continue
-
-    // 判断是否为组
-    if (element.type === 'group') {
-      // 递归处理子节点
-      // console.log(element.height, element.left)
-      console.log(`递归处理组: ${element.name}`)
-      const outPut = realOutPut(fileName, element, groupListCopy)
-      // console.log(outPut)
-      domHtml += outPut.html
-      styleData += outPut.style
-      continue
-    }
-    // console.log(element.name, elementInfo.left, element.parent.left)
-    // console.log(`处理图层: ${element.name}`)
-
-    // 从文件缓存中取出是否以前生成过此图层
-    const layerId = getLayerID(element.layer)
-    fileTemp = cacheFile(layerId, element, fileTemp, groupListCopy, fileName)
-
-    const leftValue = elementInfo.left - element.parent.left
-    const topValue = elementInfo.top - element.parent.top
-    const rightValue = element.parent.right - elementInfo.right
-    const bottomValue = element.parent.bottom - elementInfo.bottom
-    let styleList = [
-      'position: absolute',
-      `left: ${leftValue}px`,
-      `top: ${topValue}px`,
-      `z-index: ${childrenNodeList.length - ind}`
-    ]
-    // 如果图层有透明度则还要读取出透明度
-    if (elementInfo.opacity !== 1) {
-      styleList.push(`opacity: ${elementInfo.opacity}`)
-    }
-    const isBG = leftValue == 0  && topValue == 0 && rightValue == 0 && bottomValue == 0
-    const outPutData = getOutPut(elementInfo, styleList, domHtml, groupListCopy, fileTemp[layerId], ind, isBG, fileName)
-    styleList = outPutData[0]
-    domHtml = outPutData[1]
-    styleData += `.so-${groupListCopy.join('-')} {${styleList.join('; ')};}\r\n      `
-    // 记录下来
-    if (!infoData[`so-${groupListCopy.join('-')}`]) {
-      infoData[`so-${groupListCopy.join('-')}`] = {}
-    }
-    infoData[`so-${groupListCopy.join('-')}`].style = `.so-${groupListCopy.join('-')} {\r\n  ${styleList.join(';\r\n  ')};\r\n}`
-  }
-  domHtml += `</div>`
+  // console.log(domHtml)
+  // console.log('---------------------------------------')
   return {
     html: domHtml,
     style: styleData
@@ -250,10 +251,9 @@ const outPut = realOutPut(fileName, psd.tree(), [])
 
 let domHtml = ``
 let styleData = ``
-// console.log(outPut)
 
 let htmlTemple = temple
-domHtml += outPut.html
+domHtml += outPut.html + `</div>`
 styleData += outPut.style
 
 htmlTemple = htmlTemple.replace(`<!-- page-output -->`, domHtml)
