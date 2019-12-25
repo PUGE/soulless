@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 const fs = require('fs')
-const PSD = require('psd')
+// const PSD = require('C:/Users/my/Documents/GitHub/psd.js/index.js')
+
+const PSD = require('readpsd')
 
 let infoData = {}
 
@@ -36,23 +38,8 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
         }
       }
     } else {
-      // 有问题待修复
       const textInfo = elementInfo.text
-      const color = textInfo.font.colors[0]
       const text = textInfo.value.replace(/\r/g, '<br>')
-      console.log(textInfo)
-      
-      styleList.push(
-        `width: ${elementInfo.width}px`,
-        `height: ${elementInfo.height}px`,
-        `font-family: '${textInfo.font.name}'`,
-        `font-size: ${Math.floor(textInfo.font.sizes[0])}px`,
-        `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`
-      )
-      // 判断是否有文字对齐方式
-      if (textInfo.font.alignment[0] && textInfo.font.alignment[0] !== 'left') {
-        styleList.push(`text-align: ${textInfo.font.alignment[0]}`)
-      }
       infoData[`so-${groupListValue}`].pug = `p.soulless.so-${groupListValue}.item-${ind} ${text}`
       infoData[`so-${groupListValue}`].html = `<p type="text" class="soulless so-${groupListValue} item-${ind}"/>${text}</p>`
       domHtml += `<p class="soulless so-${groupListValue} so-text item-${groupList[groupList.length - 1]}">${text}</p>`
@@ -186,9 +173,35 @@ function realOutPut (fileName, node, groupList) {
   let styleList = [
     'position: absolute',
     `left: ${leftValue}px`,
-    `top: ${topValue}px`,
     `z-index: ${itemIndex}`
   ]
+  if (elementInfo.text !== undefined) {
+    // 有问题待修复
+    const textInfo = elementInfo.text
+    const color = textInfo.font.colors[0]
+    const fontSize = Math.floor(textInfo.font.sizes[0])
+    // console.log(textInfo.font)
+    styleList.push(
+      `width: ${elementInfo.width}px`,
+      `font-family: '${textInfo.font.names.join("', '")}'`,
+      `font-size: ${fontSize}px`,
+      `line-height: ${Math.floor(textInfo.font.leading[0])}px`,
+      `letter-spacing: ${textInfo.font.tracking[0] / 1000 + 'em'}`,
+      `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`,
+      `top: ${Math.ceil(topValue - fontSize) + 'px'}`
+    )
+    // 由于ps显示逻辑和CSS不一致 所以要对top值进行处理
+    // styleList['top'] = parseInt(elementInfo.top - parent.top - textInfo.font.sizes[0]) + '0px'
+    // 判断是否有文字对齐方式
+    if (textInfo.font.alignment[0] && textInfo.font.alignment[0] !== 'left') {
+      styleList.push(`text-align: ${textInfo.font.alignment[0]}`)
+    }
+    if (textInfo.font.weights[0] && textInfo.font.weights[0] === 'bold') {
+      styleList.push(`font-weight: bold`)
+    }
+  } else {
+    styleList.push(`top: ${topValue}px`)
+  }
   // 如果图层有透明度则还要读取出透明度
   if (elementInfo.opacity !== 1) {
     styleList.push(`opacity: ${elementInfo.opacity}`)
