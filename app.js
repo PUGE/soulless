@@ -179,17 +179,23 @@ function realOutPut (fileName, node, groupList) {
     // 有问题待修复
     const textInfo = elementInfo.text
     const color = textInfo.font.colors[0]
-    const fontSize = Math.floor(textInfo.font.sizes[0])
+    const fontSize = Math.floor(textInfo.font.sizes[0] - 1)
+    const lineHeight = Math.floor(textInfo.font.leading[0])
     // console.log(textInfo.font)
     styleList.push(
-      `width: ${elementInfo.width}px`,
       `font-family: '${textInfo.font.names.join("', '")}'`,
       `font-size: ${fontSize}px`,
-      `line-height: ${Math.floor(textInfo.font.leading[0])}px`,
-      `letter-spacing: ${textInfo.font.tracking[0] / 1000 + 'em'}`,
+      `line-height: ${lineHeight}px`,
       `color: rgba(${color[0]}, ${color[1]}, ${color[2]}, ${(color[3] / 255).toFixed(2)})`,
       `top: ${Math.ceil(topValue - fontSize) + 'px'}`
     )
+    // 如果是一行文字则取消宽度限制
+    if (elementInfo.height > lineHeight) {
+      styleList.push(`width: ${elementInfo.width}px`)
+    }
+    if (textInfo.font.tracking[0]) {
+      styleList.push(`letter-spacing: ${textInfo.font.tracking[0] / 1000 + 'em'}`)
+    }
     // 由于ps显示逻辑和CSS不一致 所以要对top值进行处理
     // styleList['top'] = parseInt(elementInfo.top - parent.top - textInfo.font.sizes[0]) + '0px'
     // 判断是否有文字对齐方式
