@@ -16,23 +16,22 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
     if (!infoData[`so-${groupListValue}`]) {
       infoData[`so-${groupListValue}`] = {}
     }
+    infoData[`so-${groupListValue}`].ind = ind
+    infoData[`so-${groupListValue}`].info = elementInfo
+    infoData[`so-${groupListValue}`].fileName = `${task}-${fileName}.png`
     // 判断是否为文本
     if (elementInfo.text == undefined) {
       // 取出是否包含标签信息
       const tagTest = elementInfo.name.match(/\[-(\S*)-\]/)
       const tag = tagTest ? tagTest[1] : 'img'
-
+      infoData[`so-${groupListValue}`].tag = tag
       switch (tag) {
         // 记录下来
         case 'img': {
-          infoData[`so-${groupListValue}`].pug = `img.soulless.so-${groupListValue}.item-${ind}(src="@|${task}-${fileName}.png|")`
-          infoData[`so-${groupListValue}`].html = `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" src="./${task}-${fileName}.png" />`
           domHtml += `<img class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" width="${elementInfo.width}" height="${elementInfo.height}" src="./${task}-${fileName}.png" />\r\n    `
           break
         }
         case 'input': {
-          infoData[`so-${groupListValue}`].pug = `input.soulless.so-${groupListValue}.item-${ind}(type="text" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)")`
-          infoData[`so-${groupListValue}`].html = `<input type="text" class="soulless so-${groupListValue} item-${ind}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>`
           domHtml += `<input type="text" class="soulless so-${groupListValue} item-${ind} ${isBG ? 'bg' : ''}" style="width:${elementInfo.width}px; height:${elementInfo.height}px; background-image: url(./${task}-${fileName}.png)"/>\r\n    `
           break
         }
@@ -40,8 +39,6 @@ function getOutPut (elementInfo, styleList, domHtml, groupList, fileName, ind, i
     } else {
       const textInfo = elementInfo.text
       const text = textInfo.value.replace(/\r/g, '<br>')
-      infoData[`so-${groupListValue}`].pug = `p.soulless.so-${groupListValue}.item-${ind} ${text}`
-      infoData[`so-${groupListValue}`].html = `<p type="text" class="soulless so-${groupListValue} item-${ind}"/>${text}</p>`
       domHtml += `<p class="soulless so-${groupListValue} so-text item-${groupList[groupList.length - 1]}">${text}</p>`
     }
     return [styleList, domHtml]
@@ -221,7 +218,8 @@ function realOutPut (fileName, node, groupList) {
   if (!infoData[`so-${groupList.join('-')}`]) {
     infoData[`so-${groupList.join('-')}`] = {}
   }
-  infoData[`so-${groupList.join('-')}`].style = `.so-${groupList.join('-')} {\r\n  ${styleList.join(';\r\n  ')};\r\n}`
+  infoData[`so-${groupList.join('-')}`].groupList = groupList
+  infoData[`so-${groupList.join('-')}`].styleList = styleList
   
   // console.log(domHtml)
   // console.log('---------------------------------------')
@@ -233,7 +231,7 @@ function realOutPut (fileName, node, groupList) {
 
 
 // 读取模板内容
-let temple = fs.readFileSync(__dirname + '\\page.temple', 'utf-8')
+let temple = fs.readFileSync(__dirname + '\\page.html', 'utf-8')
 
 // console.log(process.argv)
 let fileName = 'dist'
@@ -276,46 +274,6 @@ domHtml += outPut.html + `</div>`
 styleData += outPut.style
 
 htmlTemple = htmlTemple.replace(`<!-- page-output -->`, domHtml)
-htmlTemple = htmlTemple.replace(`<!-- css-output -->`, styleData)
-htmlTemple = htmlTemple.replace(`<!-- script-output -->`, `
-<script>
-  var checkList = []
-  var infoData = ${JSON.stringify(infoData)}
-  var soulless = document.getElementsByClassName('soulless')
-  Array.prototype.remove = function(val) { 
-    var index = this.indexOf(val); 
-    if (index > -1) { 
-      this.splice(index, 1); 
-    } 
-  }
-  function creatData () {
-    let htm = ''
-    let pug = ''
-    let style = ''
-    checkList.forEach(key => {
-      const element = infoData[key]
-      console.log(element.html)
-      htm += element.html + '\\r\\n'
-      pug += element.pug + '\\r\\n'
-      style += element.style + '\\r\\n'
-    })
-    document.getElementById('htm').innerText = htm + ' '
-    document.getElementById('pug').innerText = pug + ' '
-    document.getElementById('sty').innerText = style + ' '
-  }
-  for (let ind = 0; ind < soulless.length; ind++) {
-    soulless[ind].onclick = function (e) {
-      const key = e.target.classList[1]
-      // console.log(e.target.classList[1])
-      if (checkList.includes(key)) {
-        checkList.remove(key)
-      } else {
-        checkList.push(key)
-      }
-      creatData()
-      console.log(checkList)
-    }
-  }
-  
-</script>`)
+htmlTemple = htmlTemple.replace(`/* <!-- css-output --> */`, styleData)
+htmlTemple = htmlTemple.replace(`// <!-- script-output -->`, `var infoData = ${JSON.stringify(infoData)}`)
 fs.writeFileSync(`./${fileName}/index.html`, htmlTemple)

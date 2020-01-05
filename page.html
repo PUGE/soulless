@@ -98,7 +98,7 @@
         margin: 0;
         padding: 0;
       }
-      <!-- css-output -->
+      /* <!-- css-output --> */
     </style>
     
   </head>
@@ -107,13 +107,58 @@
       <!-- page-output -->
     </div>
     <div class="control-box">
-      <h5>HTML代码</h5>
-      <pre id="htm"></pre>
       <h5>PUG代码</h5>
       <pre id="pug"></pre>
       <h5>CSS代码</h5>
       <pre id="sty"></pre>
+      <input type="checkbox" id="tagging"> 标注
+      <input type="checkbox" id="useDiv""> 使用div
+      <input type="text" id="userclass"">
     </div>
-    <!-- script-output -->
+    <script>
+      var checkList = []
+      // <!-- script-output -->
+      console.log(infoData)
+      var soulless = document.getElementsByClassName('soulless')
+      Array.prototype.remove = function(val) { 
+        var index = this.indexOf(val); 
+        if (index > -1) { 
+          this.splice(index, 1); 
+        } 
+      }
+      function creatData () {
+        let htm = ''
+        let pug = ''
+        let style = ''
+        checkList.forEach(key => {
+          const element = infoData[key]
+          console.log(element)
+          // 自定义class
+          const userClass = document.getElementById('userclass').value
+          // 判断是否使用div
+          if (document.getElementById('useDiv').checked) {
+            pug += `.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(style="width: ${element.info.width}px; height: ${element.info.height}px; background-image: url(@|${element.fileName}|)")\r\n`
+          } else {
+            const taggingText = document.getElementById('tagging').checked ?  `width="${element.info.width}" height="${element.info.height}" ` : ''
+            pug += `img.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(${taggingText}src="@|${element.fileName}|")\r\n`
+          }
+          style += `.so-${element.groupList.join('-')} {\r\n  ${element.styleList.join(';\r\n  ')}\r\n}\r\n`
+        })
+        document.getElementById('pug').innerText = pug + ' '
+        document.getElementById('sty').innerText = style + ' '
+      }
+      for (let ind = 0; ind < soulless.length; ind++) {
+        soulless[ind].onclick = function (e) {
+          const key = e.target.classList[1]
+          // console.log(e.target.classList[1])
+          if (checkList.includes(key)) {
+            checkList.remove(key)
+          } else {
+            checkList.push(key)
+          }
+          creatData()
+        }
+      }
+    </script>
   </body>
 </html>

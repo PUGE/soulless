@@ -12,6 +12,6 @@
     "soulless": "./app.js"
   },
   "dependencies": {
-    "readpsd": "1.0.1"
+    "readpsd": "1.0.2"
   }
 }
