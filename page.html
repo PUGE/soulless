@@ -135,13 +135,20 @@
           console.log(element)
           // 自定义class
           const userClass = document.getElementById('userclass').value
-          // 判断是否使用div
-          if (document.getElementById('useDiv').checked) {
-            pug += `.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(style="width: ${element.info.width}px; height: ${element.info.height}px; background-image: url(@|${element.fileName}|)")\r\n`
+          // 判断是否是文字
+          if (element.info.text) {
+            element.info.text.value = element.info.text.value.replace(/\r/g, '<br>').replace(/\n/g, '<br>')
+            pug += `p.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''} ${element.info.text.value}\r\n`
           } else {
-            const taggingText = document.getElementById('tagging').checked ?  `width="${element.info.width}" height="${element.info.height}" ` : ''
-            pug += `img.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(${taggingText}src="@|${element.fileName}|")\r\n`
+              // 判断是否使用div
+            if (document.getElementById('useDiv').checked) {
+              pug += `.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(style="width: ${element.info.width}px; height: ${element.info.height}px; background-image: url(@|${element.fileName}|)")\r\n`
+            } else {
+              const taggingText = document.getElementById('tagging').checked ?  `width="${element.info.width}" height="${element.info.height}" ` : ''
+              pug += `img.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(${taggingText}src="@|${element.fileName}|")\r\n`
+            }
           }
+          
           style += `.so-${element.groupList.join('-')} {\r\n  ${element.styleList.join(';\r\n  ')}\r\n}\r\n`
         })
         document.getElementById('pug').innerText = pug + ' '
