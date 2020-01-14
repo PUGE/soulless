@@ -114,8 +114,17 @@
       <input type="checkbox" id="tagging"> 标注
       <input type="checkbox" id="useDiv""> 使用div
       <input type="text" id="userclass"">
+      <div class="group-box">
+
+      </div>
+      <button onclick="clearData()">清空</button>
     </div>
     <script>
+      function clearData () {
+        checkList = []
+        document.getElementById('pug').innerText = ''
+        document.getElementById('sty').innerText = ''
+      }
       var checkList = []
       // <!-- script-output -->
       console.log(infoData)
@@ -164,6 +173,21 @@
             checkList.push(key)
           }
           creatData()
+        }
+      }
+      // 生成分组列表
+      const groupList = document.querySelectorAll('[group]')
+      let groupHtml = ``
+      groupList.forEach(element => {
+        groupHtml += `<input type="checkbox" value="${element.attributes.group.value}" oninput="changeGroup(this)" checked="checked" />${element.attributes.group.value}`
+      })
+      document.getElementsByClassName('group-box')[0].innerHTML = groupHtml
+      function changeGroup (e) {
+        const ele = document.querySelector(`[group="${e.value}"]`)
+        if (e.checked) {
+          ele.style.display = 'block'
+        } else {
+          ele.style.display = 'none'
         }
       }
     </script>

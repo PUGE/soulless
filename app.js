@@ -102,7 +102,7 @@ function handleGroup (fileName, node, groupList, itemIndex) {
   ]
   // console.log(groupList)
   const groupStr = groupList.length > 0 ? groupList.join('-') : 'root'
-  let domHtml = `<div class="so-${groupStr} item-${itemIndex}">`
+  let domHtml = `<div class="so-${groupStr} item-${itemIndex}" group="${groupStr}">`
   let styleData = `.so-${groupStr} {${groupStyle.join('; ')};}\r\n      `
   // 递归处理子节点
   console.log(`---------------------------------------`)
@@ -256,10 +256,27 @@ if (!process.argv[3]) {
   fileName = process.argv[3]
 }
 
+// 删除文件夹
+function deleteFolderRecursive(path) {
+  if( fs.existsSync(path) ) {
+    fs.readdirSync(path).forEach(function(file) {
+      var curPath = path + "/" + file;
+      if(fs.statSync(curPath).isDirectory()) { // recurse
+        deleteFolderRecursive(curPath);
+      } else { // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
+
 // console.log(fs.existsSync(`./${fileName}`))
-if (!fs.existsSync(`./${fileName}`)) {
-  fs.mkdirSync(`./${fileName}`)
+if (fs.existsSync(`./${fileName}`)) {
+  deleteFolderRecursive(`./${fileName}`)
 }
+
+fs.mkdirSync(`./${fileName}`)
 
 
 
