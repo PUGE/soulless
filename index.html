@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link href="./css/style.css" type="text/css" rel="stylesheet">
+  </head>
+  <body>
+    
+    <div class="app">
+      <input type="checkbox" id="outText" name="outText"/> 导出文字
+      <button onclick="outPutHTML()">导出</button>
+    </div>
+
+    <script type="text/javascript" src="./js/CSInterface.js"></script>
+    <script>
+      //js和jsx的交互接口
+      var cs = new CSInterface();
+
+
+      function loadJSX(fileName) {
+        var extensionRoot = cs.getSystemPath(SystemPath.EXTENSION) + "/jsx/";
+        cs.evalScript('$.evalFile("' + extensionRoot + fileName + '")');
+      }
+
+      loadJSX("json2.js");
+
+      function outPutHTML () {
+        let replaceData = ''
+        let outPutText = document.getElementById('outText').checked
+        if (outPutText) replaceData += 'const outPutText = true\r\n'
+        else replaceData += 'const outPutText = false\r\n'
+        // 插件目录
+        const plugPath = cs.getSystemPath(SystemPath.EXTENSION)
+        // 模板文件
+        let template = window.cep.fs.readFile(plugPath + '/template.html').data
+        
+        
+        var selectPath = window.cep.fs.showOpenDialog(false, true, "选择输出目录", "", "").data
+        // 判断用户是否选择了输出目录
+        if (selectPath) {
+          //执行main.jsx里面定义的creatNewDocument() 方法
+          cs.evalScript(`getTree('${selectPath}/', ${outPutText})`, function (data) {
+            replaceData += `const infoData = ${data}`
+            // 为模板添加配置信息
+            template = template.replace('// <!-- script-output -->', replaceData)
+            var result = window.cep.fs.writeFile(selectPath + "/index.html", template);
+            if (result.err == 0) {
+              alert('生成成功!')
+            }
+            else {
+              alert('输出失败!')
+            }
+          });
+        }
+      }
+
+      cs.addEventListener("log", function (Event) {
+        document.write(JSON.stringify(Event.data))
+      });
+
+    </script>
+  </body>
+</html>

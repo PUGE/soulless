@@ -103,7 +103,7 @@
     
   </head>
   <body>
-    <div class="page-box">
+    <div id="box" class="page-box">
       <!-- page-output -->
     </div>
     <div class="control-box">
@@ -116,49 +116,38 @@
       <input type="text" id="userclass"">
     </div>
     <script>
-      var checkList = []
       // <!-- script-output -->
-      console.log(infoData)
-      var soulless = document.getElementsByClassName('soulless')
-      Array.prototype.remove = function(val) { 
-        var index = this.indexOf(val); 
-        if (index > -1) { 
-          this.splice(index, 1); 
-        } 
-      }
-      function creatData () {
-        let htm = ''
-        let pug = ''
-        let style = ''
-        checkList.forEach(key => {
-          const element = infoData[key]
-          console.log(element)
-          // 自定义class
-          const userClass = document.getElementById('userclass').value
-          // 判断是否使用div
-          if (document.getElementById('useDiv').checked) {
-            pug += `.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(style="width: ${element.info.width}px; height: ${element.info.height}px; background-image: url(@|${element.fileName}|)")\r\n`
-          } else {
-            const taggingText = document.getElementById('tagging').checked ?  `width="${element.info.width}" height="${element.info.height}" ` : ''
-            pug += `img.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(${taggingText}src="@|${element.fileName}|")\r\n`
-          }
-          style += `.so-${element.groupList.join('-')} {\r\n  ${element.styleList.join(';\r\n  ')}\r\n}\r\n`
-        })
-        document.getElementById('pug').innerText = pug + ' '
-        document.getElementById('sty').innerText = style + ' '
-      }
-      for (let ind = 0; ind < soulless.length; ind++) {
-        soulless[ind].onclick = function (e) {
-          const key = e.target.classList[1]
-          // console.log(e.target.classList[1])
-          if (checkList.includes(key)) {
-            checkList.remove(key)
-          } else {
-            checkList.push(key)
-          }
-          creatData()
-        }
-      }
     </script>
   </body>
+  <script>
+    function getGtmlData(dataArr, prefix) {
+      console.log(dataArr)
+      let html = ''
+      for (let index = 0; index < dataArr.length; index++) {
+        const element = dataArr[index];
+        let styleData = `left: ${element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left}px;top: ${element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top}px;z-index: ${dataArr.length - index};`
+        switch (element.kind) {
+          case "TEXT":
+            if (outPutText) {
+              styleData += `font-size: ${element.textItem.size}px;color: ${element.textItem.color};line-height: ${element.textItem.leading}px;`
+              html += `<span class="soulless so-${element.id}" style="${styleData}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
+              break
+            }
+          case "SOLIDFILL":
+          case "SMARTOBJECT":
+          case "NORMAL":
+          case "OTHER":
+            html += `<img class="soulless so-${element.id}" src="./${element.name}.png" style="${styleData}"></img>`
+            break
+          default:
+            if (!element.children) break
+            styleData += `width: ${element.width}px;height: ${element.height}px;`
+            html += `<div class="soulless so-${element.id}" style="${styleData}">${getGtmlData(element.children, element.name + '-')}</div>`
+        }
+      }
+      return html
+    }
+    // 生成页面
+    document.getElementById('box').innerHTML = getGtmlData(infoData, '')
+  </script>
 </html>
