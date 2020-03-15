@@ -114,9 +114,86 @@
       <input type="checkbox" id="tagging"> 标注
       <input type="checkbox" id="useDiv""> 使用div
       <input type="text" id="userclass"">
+      <div class="group-box">
+
+      </div>
+      <button onclick="clearData()">清空</button>
     </div>
     <script>
+<<<<<<< HEAD:template.html
       // <!-- script-output -->
+=======
+      function clearData () {
+        checkList = []
+        document.getElementById('pug').innerText = ''
+        document.getElementById('sty').innerText = ''
+      }
+      var checkList = []
+      // <!-- script-output -->
+      console.log(infoData)
+      var soulless = document.getElementsByClassName('soulless')
+      Array.prototype.remove = function(val) { 
+        var index = this.indexOf(val); 
+        if (index > -1) { 
+          this.splice(index, 1); 
+        } 
+      }
+      function creatData () {
+        let htm = ''
+        let pug = ''
+        let style = ''
+        checkList.forEach(key => {
+          const element = infoData[key]
+          console.log(element)
+          // 自定义class
+          const userClass = document.getElementById('userclass').value
+          // 判断是否是文字
+          if (element.info.text) {
+            element.info.text.value = element.info.text.value.replace(/\r/g, '<br>').replace(/\n/g, '<br>')
+            pug += `p.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''} ${element.info.text.value}\r\n`
+          } else {
+              // 判断是否使用div
+            if (document.getElementById('useDiv').checked) {
+              pug += `.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(style="width: ${element.info.width}px; height: ${element.info.height}px; background-image: url(@|${element.fileName}|)")\r\n`
+            } else {
+              const taggingText = document.getElementById('tagging').checked ?  `width="${element.info.width}" height="${element.info.height}" ` : ''
+              pug += `img.so-${element.groupList.join('-')}${userClass ? '.' + userClass : ''}(${taggingText}src="@|${element.fileName}|")\r\n`
+            }
+          }
+          
+          style += `.so-${element.groupList.join('-')} {\r\n  ${element.styleList.join(';\r\n  ')}\r\n}\r\n`
+        })
+        document.getElementById('pug').innerText = pug + ' '
+        document.getElementById('sty').innerText = style + ' '
+      }
+      for (let ind = 0; ind < soulless.length; ind++) {
+        soulless[ind].onclick = function (e) {
+          const key = e.target.classList[1]
+          // console.log(e.target.classList[1])
+          if (checkList.includes(key)) {
+            checkList.remove(key)
+          } else {
+            checkList.push(key)
+          }
+          creatData()
+        }
+      }
+      // 生成分组列表
+      const groupList = document.querySelectorAll('[group]')
+      let groupHtml = ``
+      groupList.forEach(element => {
+        groupHtml += `<input type="checkbox" value="${element.attributes.group.value}" oninput="changeGroup(this)" checked="checked" />${element.attributes.group.value}`
+      })
+      document.getElementsByClassName('group-box')[0].innerHTML = groupHtml
+      function changeGroup (e) {
+        const ele = document.querySelector(`[group="${e.value}"]`)
+        if (e.checked) {
+          ele.style.display = 'block'
+        } else {
+          ele.style.display = 'none'
+        }
+      }
+>>>>>>> 855295c80e6c7bb51e857f36bcd4ebfcecf794a8:page.html
     </script>
   </body>
   <script>
