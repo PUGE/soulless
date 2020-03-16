@@ -5,39 +5,31 @@
 }
 
 var log = ''
+var docWidth = 0
+var docHeight = 0
 
 function getPos (layer, parentInfo) {
   var obj = layer.bounds
-  var returnData = {}
+  var returnData = {
+    left: obj[0].as('px'),
+    top: obj[1].as('px'),
+    right: obj[2].as('px'),
+    bottom: obj[3].as('px')
+  }
+
+  for (var key in returnData) {
+    if (returnData[key] < 0) {
+      returnData[key] = 0
+    }
+  }
+  if (returnData.top == 0 && returnData.left == 0 && returnData.right == 0 && returnData.bottom == 0) {
+    returnData.specialMode = true
+  }
   if (parentInfo) {
-    returnData = {
-      relativeLeft: obj[0].as('px') - parentInfo.bounds.left,
-      relativeTop: obj[1].as('px') - parentInfo.bounds.top,
-      relativeRight: obj[2].as('px') - parentInfo.bounds.right,
-      relativeBottom: obj[3].as('px') - parentInfo.bounds.bottom,
-      left: obj[0].as('px'),
-      top: obj[1].as('px'),
-      right: obj[2].as('px'),
-      bottom: obj[3].as('px'),
-    }
-  } else {
-    returnData = {
-      left: obj[0].as('px'),
-      top: obj[1].as('px'),
-      right: obj[2].as('px'),
-      bottom: obj[3].as('px'),
-    }
-    // 判断是否为超出的背景
-    if (returnData.left <= 0 || returnData.top <= 0) {
-      if (returnData.left <= 0) {
-        returnData.left = 0
-      }
-      if (returnData.top <= 0) {
-        returnData.top = 0
-      }
-      // 剪裁标识
-      returnData.specialMode = true
-    }
+    returnData.relativeLeft = returnData.left - parentInfo.bounds.left
+    returnData.relativeTop = returnData.top - parentInfo.bounds.top
+    returnData.relativeRight = returnData.right - parentInfo.bounds.right
+    returnData.relativeBottom = returnData.bottom - parentInfo.bounds.bottom
   }
   
   return returnData
@@ -83,10 +75,13 @@ function getTextCase(kind) {
 }
 
 
-function getTree (outPath, outText) {
+function getTree (outPath, outText, resOutType, resPrefix) {
   log = ''
+  if (resPrefix == undefined) resPrefix = ''
+  docWidth = app.activeDocument.width.as('px')
+  docHeight = app.activeDocument.height.as('px')
   var layers = app.activeDocument.layers
-  const returnData = JSON.stringify(getLayers(layers, outPath, '', outText))
+  const returnData = JSON.stringify(getLayers(layers, outPath, '', outText, resOutType, resPrefix))
   if (log) alert(log)
   return returnData
 }
@@ -116,7 +111,7 @@ function SavePNG(saveFile, specialMode) {
   activeDocument.saveAs(saveFile, pngSaveOptions, true, Extension.LOWERCASE);
 }
 
-var getLayers = function (layers, outPath, parentInfo, outText) {
+var getLayers = function (layers, outPath, parentInfo, outText, resOutType, resPrefix) {
   var returnData = []
   
   for (var index = 0; index < layers.length; index++) {
@@ -124,9 +119,10 @@ var getLayers = function (layers, outPath, parentInfo, outText) {
     
     var layerWidth = layer.bounds[2].as('px') - layer.bounds[0].as('px')
     var layerHeight = layer.bounds[3].as('px') - layer.bounds[1].as('px')
+    // alert(layerHeight)
     
     // 排除掉空图层
-    if (layerWidth == 0 || layerHeight == 0) {
+    if (layerWidth == 0 && layerHeight == 0) {
       // alert(layer.name)
       log += '\r\n图层: ' + layer.name + '为空，跳过输出!'
       continue
@@ -137,7 +133,7 @@ var getLayers = function (layers, outPath, parentInfo, outText) {
     }
     var temp = {
       id: layer.id,
-      name: parentInfo ? parentInfo.name + '-' + layer.name : layer.name,
+      name: layer.name,
       itemIndex: layer.itemIndex,
       opacity: parseInt(layer.opacity),
       visible: layer.visible,
@@ -146,11 +142,13 @@ var getLayers = function (layers, outPath, parentInfo, outText) {
       width: layerWidth,
       height: layerHeight
     }
-    
+    if (docWidth == layerWidth && layerHeight == docHeight) {
+      temp.bounds.specialMode = true
+    }
     switch (layer.typename) {
       // 判断是否为组
       case 'LayerSet':
-        temp.children = getLayers(layer.layers, outPath, temp, outText)
+        temp.children = getLayers(layer.layers, outPath, temp, outText, resOutType, resPrefix)
         break;
       // 判断是否为图层
       case 'ArtLayer':
@@ -179,13 +177,23 @@ var getLayers = function (layers, outPath, parentInfo, outText) {
           }
           try {temp.textItem.leading = textItem.leading.as('px')} catch (error) {}
         } else {
+          var resName = layer.id
+          // 判断资源输出文件名
+          switch (resOutType) {
+            case 'group-name':
+              if (parentInfo) {
+                saveFile = parentInfo.name + '-' + resName
+                break
+              }
+            case 'name':
+              resName = layer.name
+              break
+          }
+          temp.fileName = resPrefix + resName + ".png"
           activeDocument.activeLayer = layer;
           // alert(temp.name)
           dupLayers(layer);
-          var saveFile = File(outPath + layer.name + ".png");
-          if (parentInfo) {
-            saveFile = File(outPath + parentInfo.name + '-' + layer.name + ".png");
-          }
+          var saveFile = File(outPath + temp.fileName);
           
           SavePNG(saveFile, temp.bounds.specialMode);
           app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
