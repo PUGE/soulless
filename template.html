@@ -161,20 +161,24 @@
     for (let index = 0; index < itemList.length; index++) {
       const element = itemList[index];
       element.onclick = function (e) {
-        checkArr[e.target.attributes.ind.value] = true
+        checkArr[e.target.attributes.ind.value] = !checkArr[e.target.attributes.ind.value]
         getCode()
       }
     }
 
     function getCode() {
       let newPug = ''
+      let newStyle = '.so {position: absolute;}\r\n'
       let ind = 0
       for (const key in checkArr) {
         if (checkArr[key]) {
-          newPug += `<img class="so so-${ind++}" src="@|${tempArr[key].fileName}|">\r\n`
+          const element = tempArr[key]
+          newPug += `<img class="so so-${ind}" src="@|${element.fileName}|">\r\n`
+          newStyle += `.so-${ind++} {left: ${element.bounds.left};top: ${element.bounds.top};}\r\n`
         }
       }
       document.getElementById('pug').innerText = newPug
+      document.getElementById('sty').innerText = newStyle
     }
   </script>
 </html>

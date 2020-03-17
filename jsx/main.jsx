@@ -119,6 +119,9 @@ var getLayers = function (layers, outPath, parentInfo, outText, resOutType, resP
     
     var layerWidth = layer.bounds[2].as('px') - layer.bounds[0].as('px')
     var layerHeight = layer.bounds[3].as('px') - layer.bounds[1].as('px')
+    // 背景超出部分剪裁
+    if (layerWidth > docWidth) layerWidth = docWidth
+    if (layerHeight > docHeight) layerHeight = docHeight
     // alert(layerHeight)
     
     // 排除掉空图层
