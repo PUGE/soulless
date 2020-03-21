@@ -74,14 +74,18 @@ function getTextCase(kind) {
   }
 }
 
+var Compression = 2
+var Png8 = false
 
-function getTree (outPath, outText, resOutType, resPrefix) {
+function getTree (outPath, outText, resOutType, resPrefix, compression, png8) {
+  Compression = compression
+  Png8 = png8
   log = ''
   if (resPrefix == undefined) resPrefix = ''
   docWidth = app.activeDocument.width.as('px')
   docHeight = app.activeDocument.height.as('px')
   var layers = app.activeDocument.layers
-  const returnData = JSON.stringify(getLayers(layers, outPath, '', outText, resOutType, resPrefix))
+  const returnData = JSON.stringify(getLayers(layers, outPath, '', outText, resOutType, resPrefix, compression))
   if (log) alert(log)
   return returnData
 }
@@ -105,8 +109,10 @@ function SavePNG(saveFile, specialMode) {
   pngSaveOptions.embedColorProfile = true;
   pngSaveOptions.formatOptions = FormatOptions.STANDARDBASELINE;
   pngSaveOptions.matte = MatteType.NONE;
-  pngSaveOptions.PNG8 = false;
+  alert(Boolean(Png8))
+  pngSaveOptions.PNG8 = Boolean(Png8);
   pngSaveOptions.transparency = true;
+  pngSaveOptions.compression = Compression
   if (!specialMode) activeDocument.trim(TrimType.TRANSPARENT, true, true, true, true);
   activeDocument.saveAs(saveFile, pngSaveOptions, true, Extension.LOWERCASE);
 }
@@ -145,7 +151,7 @@ var getLayers = function (layers, outPath, parentInfo, outText, resOutType, resP
       width: layerWidth,
       height: layerHeight
     }
-    if (docWidth == layerWidth && layerHeight == docHeight) {
+    if (parseInt(docWidth) == parseInt(layerWidth) && parseInt(layerHeight) == parseInt(docHeight)) {
       temp.bounds.specialMode = true
     }
     switch (layer.typename) {

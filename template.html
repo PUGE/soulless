@@ -13,6 +13,10 @@
         height: 100%;
         margin: 0;
         font-size: 24px;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
       }
       #swgRoot {
         opacity: 0;
@@ -34,9 +38,6 @@
       }
       .control-box {
         background-color: #2a393c;
-        position: fixed;
-        right: 0;
-        top: 0;
         width: 260px;
         height: 100%;
       }
@@ -93,6 +94,7 @@
         width: calc(100% - 260px);
         overflow: auto;
         height: 100%;
+        position: relative;
       }
       .so-text {
         margin: 0;
@@ -174,7 +176,7 @@
         if (checkArr[key]) {
           const element = tempArr[key]
           newPug += `<img class="so so-${ind}" src="@|${element.fileName}|">\r\n`
-          newStyle += `.so-${ind++} {left: ${element.bounds.left};top: ${element.bounds.top};}\r\n`
+          newStyle += `.so-${ind++} {left: ${element.bounds.left}px;top: ${element.bounds.top}px;}\r\n`
         }
       }
       document.getElementById('pug').innerText = newPug

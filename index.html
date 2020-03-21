@@ -53,7 +53,25 @@
         <span>资源前缀</span>
         <input id="resPrefix" type="text"></input>
       </div>
-      
+      <div class="bar">
+        <span>资源压缩等级</span>
+        <select id="compression">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2" selected="selected">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+        </select>
+      </div>
+      <div class="bar">
+        <span>使用png8</span>
+        <input type="checkbox" id="png8" name="png8"/>
+      </div>
       <div class="button" onclick="outPutHTML()">导出</div>
     </div>
 
@@ -77,6 +95,9 @@
         else replaceData += 'const outPutText = false\r\n'
         const resOutType = document.getElementById('resOutType').value
         const resPrefix = document.getElementById('resPrefix').value
+        // 图片质量
+        const compression = document.getElementById('compression').value
+        const png8 = document.getElementById('png8').checked
         // 插件目录
         const plugPath = cs.getSystemPath(SystemPath.EXTENSION)
         // 模板文件
@@ -87,7 +108,7 @@
         // 判断用户是否选择了输出目录
         if (selectPath) {
           //执行main.jsx里面定义的creatNewDocument() 方法
-          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}')`, function (data) {
+          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${compression}, ${png8})`, function (data) {
             replaceData += `const infoData = ${data}`
             // 为模板添加配置信息
             template = template.replace('// <!-- script-output -->', replaceData)
