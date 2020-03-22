@@ -40,6 +40,12 @@
   <body>
     <div class="app">
       <div class="bar">
+        <span>导出整个文档</span>
+        <input name="outputtype" id="outPutAll" type="radio" value="all" checked="checked"></input>
+        <span>导出当前图层</span>
+        <input name="outputtype" type="radio" value="select"></input>
+      </div>
+      <div class="bar">
         <span>导出文字</span>
         <input type="checkbox" id="outText" name="outText"/>
         <span>资源命名</span>
@@ -54,19 +60,8 @@
         <input id="resPrefix" type="text"></input>
       </div>
       <div class="bar">
-        <span>资源压缩等级</span>
-        <select id="compression">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2" selected="selected">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-        </select>
+        <span>图片质量(0-100)</span>
+        <input type="number" id="quality" value="80" name="quality"/>
       </div>
       <div class="bar">
         <span>使用png8</span>
@@ -96,8 +91,9 @@
         const resOutType = document.getElementById('resOutType').value
         const resPrefix = document.getElementById('resPrefix').value
         // 图片质量
-        const compression = document.getElementById('compression').value
+        const quality = document.getElementById('quality').value
         const png8 = document.getElementById('png8').checked
+        const outPutAll = document.getElementById('outPutAll').checked
         // 插件目录
         const plugPath = cs.getSystemPath(SystemPath.EXTENSION)
         // 模板文件
@@ -108,18 +104,26 @@
         // 判断用户是否选择了输出目录
         if (selectPath) {
           //执行main.jsx里面定义的creatNewDocument() 方法
-          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${compression}, ${png8})`, function (data) {
-            replaceData += `const infoData = ${data}`
-            // 为模板添加配置信息
-            template = template.replace('// <!-- script-output -->', replaceData)
-            var result = window.cep.fs.writeFile(selectPath + "/index.html", template);
-            if (result.err == 0) {
-              alert('生成成功!')
-            }
-            else {
-              alert('输出失败!')
+          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${quality}, ${png8}, ${outPutAll})`, function (res) {
+            res = JSON.parse(res)
+            if (res.err === 0) {
+              const data = res.data
+              replaceData += `const infoData = ${data}`
+              // 为模板添加配置信息
+              template = template.replace('// <!-- script-output -->', replaceData)
+              var result = window.cep.fs.writeFile(selectPath + "/index.html", template);
+              if (result.err == 0) {
+                alert('生成成功!')
+              }
+              else {
+                alert('输出失败!')
+              }
+            } else {
+              alert(res.data)
             }
           });
+        } else {
+          return
         }
       }
 

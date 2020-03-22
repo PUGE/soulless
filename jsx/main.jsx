@@ -7,6 +7,10 @@
 var log = ''
 var docWidth = 0
 var docHeight = 0
+var OutPath = null
+var OutText = false
+var ResPrefix = ''
+var ResOutType = 'id'
 
 function getPos (layer, parentInfo) {
   var obj = layer.bounds
@@ -74,158 +78,191 @@ function getTextCase(kind) {
   }
 }
 
-var Compression = 2
+var Quality = 80
 var Png8 = false
 
-function getTree (outPath, outText, resOutType, resPrefix, compression, png8) {
-  Compression = compression
+function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPutAll) {
+  Quality = quality
   Png8 = png8
+  OutPath = outPath
+  ResPrefix = resPrefix || ''
+  OutText = outText
+  ResOutType = resOutType || 'id'
   log = ''
-  if (resPrefix == undefined) resPrefix = ''
   docWidth = app.activeDocument.width.as('px')
   docHeight = app.activeDocument.height.as('px')
-  var layers = app.activeDocument.layers
-  const returnData = JSON.stringify(getLayers(layers, outPath, '', outText, resOutType, resPrefix, compression))
+  // 判断是输出全部还是输出选中组
+  var layer = app.activeDocument
+  var parentInfo = null
+  if (!outPutAll) {
+    layer = app.activeDocument.activeLayer
+    if (layer.typename === 'LayerSet') {
+      var layerInfo = getLayerInfo(layer)
+      layerInfo.children = getLayers(layer.layers, layerInfo)
+      return JSON.stringify({
+        err: 0,
+        data: JSON.stringify([layerInfo])
+      })
+    } else {
+      var layerInfo = getLayerInfo(layer)
+      return JSON.stringify({
+        err: 0,
+        data: JSON.stringify([outPutLayer(layerInfo, layer)])
+      })
+    }
+  }
+  var returnData = JSON.stringify(getLayers(layer.layers, parentInfo))
   if (log) alert(log)
-  return returnData
+  return JSON.stringify({
+    err: 0,
+    data: returnData
+  })
 }
 
 // 将图层新建为文档
 function dupLayers(layerName) {
+  
   var desc143 = new ActionDescriptor();
   var ref73 = new ActionReference();
   ref73.putClass( charIDToTypeID('Dcmn') );
   desc143.putReference( charIDToTypeID('null'), ref73 );
   desc143.putString( charIDToTypeID('Nm  '), layerName );
   var ref74 = new ActionReference();
+  
   ref74.putEnumerated( charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt') );
   desc143.putReference( charIDToTypeID('Usng'), ref74 );
-  executeAction( charIDToTypeID('Mk  '), desc143, DialogModes.NO );
+  try {
+    executeAction(charIDToTypeID('Mk  '), desc143, DialogModes.NO );
+  } catch (err) {
+    alert(err)
+  }
+  
+  
 }
 
 // 输出PNG图片
 function SavePNG(saveFile, specialMode) {
-  pngSaveOptions = new PNGSaveOptions();
-  pngSaveOptions.embedColorProfile = true;
-  pngSaveOptions.formatOptions = FormatOptions.STANDARDBASELINE;
-  pngSaveOptions.matte = MatteType.NONE;
-  alert(Boolean(Png8))
+  pngSaveOptions = new ExportOptionsSaveForWeb();
+  pngSaveOptions.format = specialMode ? SaveDocumentType.JPEG : SaveDocumentType.PNG;
+  // JPEG优化
+  pngSaveOptions.optimized = true
+  // 透明度
+  pngSaveOptions.transparency = true
   pngSaveOptions.PNG8 = Boolean(Png8);
-  pngSaveOptions.transparency = true;
-  pngSaveOptions.compression = Compression
+  // alert(pngSaveOptions.PNG8)
+  pngSaveOptions.quality = Quality
   if (!specialMode) activeDocument.trim(TrimType.TRANSPARENT, true, true, true, true);
-  activeDocument.saveAs(saveFile, pngSaveOptions, true, Extension.LOWERCASE);
+  activeDocument.exportDocument(saveFile, ExportType.SAVEFORWEB, pngSaveOptions);
 }
 
-var getLayers = function (layers, outPath, parentInfo, outText, resOutType, resPrefix) {
-  var returnData = []
+
+function getLayerInfo (layer, parentInfo) {
+  var layerWidth = layer.bounds[2].as('px') - layer.bounds[0].as('px')
+  var layerHeight = layer.bounds[3].as('px') - layer.bounds[1].as('px')
+  // 背景超出部分剪裁
+  if (layerWidth > docWidth) layerWidth = docWidth
+  if (layerHeight > docHeight) layerHeight = docHeight
+  // alert(layerHeight)
   
+  // 排除掉空图层
+  if (layerWidth == 0 && layerHeight == 0) {
+    // alert(layer.name)
+    log += '\r\n图层: ' + layer.name + '为空，跳过输出!'
+    return null
+  }
+  if (!layer.visible) {
+    log += '\r\n图层: ' + layer.name + '不可见，跳过输出!'
+    return null
+  }
+  var layerInfo = {
+    id: layer.id,
+    name: layer.name,
+    itemIndex: layer.itemIndex,
+    opacity: parseInt(layer.opacity),
+    visible: layer.visible,
+    bounds: getPos(layer, parentInfo),
+    typename: layer.typename,
+    width: layerWidth,
+    height: layerHeight
+  }
+  if (parseInt(docWidth) == parseInt(layerWidth) && parseInt(layerHeight) == parseInt(docHeight)) {
+    layerInfo.bounds.specialMode = true
+  }
+  return layerInfo
+}
+
+function outPutLayer (layerInfo, layer, parentInfo) {
+  layerInfo.kind = getArtLayerType(layer.kind)
+  layerInfo.isBackgroundLayer = layer.isBackgroundLayer
+  
+  // 对文字进行处理
+  if (layerInfo.kind === 'TEXT' && OutText) {
+    var textItem = layer.textItem
+    
+    layerInfo.textItem = {
+      contents: textItem.contents,
+      color: '#' + textItem.color.rgb.hexValue,
+      size: textItem.size.as('px'),
+      // leading: textItem.leading.as('px'),
+      position: [parseInt(textItem.position[0].as('px')), parseInt(textItem.position[1].as('px'))],
+      // 大写信息
+      // capitalization: getTextCase(textItem.capitalization),
+      // 文本取向
+      direction: textItem.direction == Direction.HORIZONTAL ? 'HORIZONTAL' : 'VERTICAL',
+      font: textItem.font,
+      // 仿斜体
+      // fauxItalic: textItem.fauxItalic,
+      // 首行缩进
+      // firstLineIndent: textItem.firstLineIndent.as('pt')
+    }
+    try {layerInfo.textItem.leading = textItem.leading.as('px')} catch (error) {}
+  } else {
+    var resName = layer.id
+    
+    // 判断资源输出文件名
+    switch (ResOutType) {
+      case 'group-name':
+        if (parentInfo) {
+          saveFile = parentInfo.name + '-' + resName
+          break
+        }
+      case 'name':
+        resName = layer.name
+        break
+    }
+    layerInfo.fileName = ResPrefix + resName + (layerInfo.bounds.specialMode ? ".jpg" : ".png")
+    activeDocument.activeLayer = layer;
+    dupLayers(layer);
+    
+    var saveFile = File(OutPath + layerInfo.fileName);
+    
+    SavePNG(saveFile, layerInfo.bounds.specialMode);
+    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+  }
+  return layerInfo
+}
+
+var getLayers = function (layers, parentInfo) {
+  var returnData = []
   for (var index = 0; index < layers.length; index++) {
     var layer = layers[index];
     
-    var layerWidth = layer.bounds[2].as('px') - layer.bounds[0].as('px')
-    var layerHeight = layer.bounds[3].as('px') - layer.bounds[1].as('px')
-    // 背景超出部分剪裁
-    if (layerWidth > docWidth) layerWidth = docWidth
-    if (layerHeight > docHeight) layerHeight = docHeight
-    // alert(layerHeight)
-    
-    // 排除掉空图层
-    if (layerWidth == 0 && layerHeight == 0) {
-      // alert(layer.name)
-      log += '\r\n图层: ' + layer.name + '为空，跳过输出!'
-      continue
-    }
-    if (!layer.visible) {
-      log += '\r\n图层: ' + layer.name + '不可见，跳过输出!'
-      continue
-    }
-    var temp = {
-      id: layer.id,
-      name: layer.name,
-      itemIndex: layer.itemIndex,
-      opacity: parseInt(layer.opacity),
-      visible: layer.visible,
-      bounds: getPos(layer, parentInfo),
-      typename: layer.typename,
-      width: layerWidth,
-      height: layerHeight
-    }
-    if (parseInt(docWidth) == parseInt(layerWidth) && parseInt(layerHeight) == parseInt(docHeight)) {
-      temp.bounds.specialMode = true
-    }
+    var layerInfo = getLayerInfo(layer, parentInfo)
+    if (layerInfo === null) {continue}
     switch (layer.typename) {
       // 判断是否为组
       case 'LayerSet':
-        temp.children = getLayers(layer.layers, outPath, temp, outText, resOutType, resPrefix)
+        layerInfo.children = getLayers(layer.layers, layerInfo)
         break;
       // 判断是否为图层
       case 'ArtLayer':
-        temp.kind = getArtLayerType(layer.kind)
-        temp.isBackgroundLayer = layer.isBackgroundLayer
-        
-        // 对文字进行处理
-        if (temp.kind === 'TEXT' && outText) {
-          var textItem = layer.textItem
-          
-          temp.textItem = {
-            contents: textItem.contents,
-            color: '#' + textItem.color.rgb.hexValue,
-            size: textItem.size.as('px'),
-            // leading: textItem.leading.as('px'),
-            position: [parseInt(textItem.position[0].as('px')), parseInt(textItem.position[1].as('px'))],
-            // 大写信息
-            // capitalization: getTextCase(textItem.capitalization),
-            // 文本取向
-            direction: textItem.direction == Direction.HORIZONTAL ? 'HORIZONTAL' : 'VERTICAL',
-            font: textItem.font,
-            // 仿斜体
-            // fauxItalic: textItem.fauxItalic,
-            // 首行缩进
-            // firstLineIndent: textItem.firstLineIndent.as('pt')
-          }
-          try {temp.textItem.leading = textItem.leading.as('px')} catch (error) {}
-        } else {
-          var resName = layer.id
-          // 判断资源输出文件名
-          switch (resOutType) {
-            case 'group-name':
-              if (parentInfo) {
-                saveFile = parentInfo.name + '-' + resName
-                break
-              }
-            case 'name':
-              resName = layer.name
-              break
-          }
-          temp.fileName = resPrefix + resName + ".png"
-          activeDocument.activeLayer = layer;
-          // alert(temp.name)
-          dupLayers(layer);
-          var saveFile = File(outPath + temp.fileName);
-          
-          SavePNG(saveFile, temp.bounds.specialMode);
-          app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
-        }
-        
+        layerInfo = outPutLayer(layerInfo, layer, parentInfo)
         break;  
       default:
         break;
     }
-    returnData.push(temp)
-    // 组处理
+    
+    returnData.push(layerInfo)
   }
-  // var temp2 = ''
-  // alert(LayerKind.TEXT)
-  // for (var key in layers[0].kind) {
-  //   alert(key)
-  // }
-  // if (loadSuccess) {
-    // alert(JSON)
-  //   var eventJAX = new CSXSEvent(); //创建事件对象
-  //   eventJAX.type = "log"; //设定一个类型名称
-  //   eventJAX.data = returnData
-  //   eventJAX.dispatch(); // GO ! 发送事件
-  // }
   return returnData
 }
