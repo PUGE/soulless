@@ -172,11 +172,12 @@
       let newPug = ''
       let newStyle = '.so {position: absolute;}\r\n'
       let ind = 0
+      const checkArrLen = Object.keys(checkArr).length
       for (const key in checkArr) {
         if (checkArr[key]) {
           const element = tempArr[key]
-          newPug += `<img class="so so-${ind}" src="@|${element.fileName}|">\r\n`
-          newStyle += `.so-${ind++} {left: ${element.bounds.left}px;top: ${element.bounds.top}px;}\r\n`
+          newPug += `img.so.so-${ind}(src="@|${element.fileName}|")\r\n`
+          newStyle += `.so-${ind++} {left: ${element.bounds.left}px;top: ${element.bounds.top}px;z-index: ${checkArrLen - ind}}\r\n`
         }
       }
       document.getElementById('pug').innerText = newPug
