@@ -78,6 +78,16 @@ function getTextCase(kind) {
   }
 }
 
+// 向前端发送命令
+function sendMessage (type, data) {
+  if (loadSuccess) { 
+    var eventJAX = new CSXSEvent(); //创建事件对象
+    eventJAX.type = type; //设定一个类型名称
+    eventJAX.data = data; // 事件要传递的信息
+    eventJAX.dispatch(); // GO ! 发送事件
+  }
+}
+
 var Quality = 80
 var Png8 = false
 

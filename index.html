@@ -35,6 +35,27 @@
       .button:hover {
         background-color: #6b6b6b;
       }
+      .is-running {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: #535353;
+        left: 0;
+        top: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        display: none;
+      }
+      .is-running img {
+        width: 100px;
+      }
+      .is-running p {
+        color: #999999;
+        line-height: 40px;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
@@ -69,7 +90,11 @@
       </div>
       <div class="button" onclick="outPutHTML()">导出</div>
     </div>
-
+    <!-- 正在运行界面 -->
+    <div class="is-running">
+      <img src="./img/runing.svg">
+      <p>正在处理图层，请稍后...</p>
+    </div>
     <script type="text/javascript" src="./js/CSInterface.js"></script>
     <script>
       //js和jsx的交互接口
@@ -102,7 +127,8 @@
         
         var selectPath = window.cep.fs.showOpenDialog(false, true, "选择输出目录", "", "").data
         // 判断用户是否选择了输出目录
-        if (selectPath) {
+        if (selectPath && selectPath != '') {
+          document.getElementsByClassName('is-running')[0].style.display = 'flex'
           //执行main.jsx里面定义的creatNewDocument() 方法
           cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${quality}, ${png8}, ${outPutAll})`, function (res) {
             res = JSON.parse(res)
@@ -113,7 +139,7 @@
               template = template.replace('// <!-- script-output -->', replaceData)
               var result = window.cep.fs.writeFile(selectPath + "/index.html", template);
               if (result.err == 0) {
-                alert('生成成功!')
+                document.getElementsByClassName('is-running')[0].style.display = 'none'
               }
               else {
                 alert('输出失败!')
