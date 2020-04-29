@@ -210,6 +210,15 @@
       newPug += `${prefix}.so.so-${outCodeIndex}\r\n`
       newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  width: ${element.width}px;\r\n  height: ${element.height}px;\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''}\r\n}\r\n`
     }
+    // 输出文字代码
+    function outText (element, prefix) {
+      const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
+      const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
+      // 去掉文字中的换行符
+      element.textItem.contents = element.textItem.contents.replace('\r', '<br>')
+      newPug += `${prefix}.so.so-${outCodeIndex} ${element.textItem.contents}\r\n`
+      newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
+    }
     function getCode() {
       // console.log(checkArr)
       newPug = ''
@@ -224,6 +233,12 @@
           // 判断是否使用DIV 或者使用的是组模式
           // console.log(element.typename)
           const useDiv = document.querySelector('#useDiv').checked
+          console.log(element)
+          // 判断是否为输出文字
+          if (element.kind === "TEXT") {
+            outText(element, '')
+            continue
+          }
           if (useDiv || element.children) {
             outDiv(element, '')
             // 判断是否有子元素
@@ -239,7 +254,6 @@
           } else {
             outImg(element, '')
           }
-          
         }
       }
       document.getElementById('pug').innerHTML = newPug
