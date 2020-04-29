@@ -54,8 +54,19 @@
         text-shadow: 0 1px 0 #293334;
         margin: 0 5px;
         user-select: none;
+        position: relative;
       }
-      pre {
+      h5 img {
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        right: 15px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+        cursor: pointer;
+      }
+      textarea {
         height: calc(33% - 46px);
         background-color: #1e1e1e;
         font-size: 12px;
@@ -64,6 +75,7 @@
         color: #b4c8ce;
         width: 98%;
         line-height: 14px;
+        border: none;
       }
       input.soulless {
         border: none;
@@ -103,6 +115,10 @@
       .soulless:hover {
         box-shadow: 0px 0px 11px #bce666;
       }
+      .children {
+        user-select: none;
+        pointer-events: none;
+      }
       /* <!-- css-output --> */
     </style>
     
@@ -112,74 +128,138 @@
       <!-- page-output -->
     </div>
     <div class="control-box">
-      <h5>PUG代码</h5>
-      <pre id="pug"></pre>
-      <h5>CSS代码</h5>
-      <pre id="sty"></pre>
+      <h5>PUG代码<img src="https://cunchu.site/swg/copy.svg" onclick="copyPug()"></h5>
+      <textarea id="pug"></textarea>
+      <h5>CSS代码<img src="https://cunchu.site/swg/copy.svg" onclick="copyStyle()"></h5>
+      <textarea id="sty"></textarea>
+      <input type="checkbox" id="useDiv"> 使用DIV
     </div>
     <script>
       // <!-- script-output -->
     </script>
   </body>
   <script>
-    let tempArr = []
+    let tempArr = {}
     let itemIndex = 0
-    function getGtmlData(dataArr, prefix) {
+    let newPug = ''
+    let newStyle = ''
+    let outCodeIndex = 0
+    let checkArrLen = 0
+    function getGtmlData(dataArr, isChildren) {
       let html = ''
       for (let index = 0; index < dataArr.length; index++) {
         const element = dataArr[index];
+        
         let styleData = `left: ${element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left}px;top: ${element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top}px;z-index: ${dataArr.length - index};`
         switch (element.kind) {
           case "TEXT":
             if (outPutText) {
               styleData += `font-size: ${element.textItem.size}px;color: ${element.textItem.color};line-height: ${element.textItem.leading}px;`
-              html += `<span class="soulless so-${element.id}" style="${styleData}" ind="${itemIndex}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
+              html += `<!-- ${element.name} -->\r\n<span class="soulless so-${element.id}${isChildren ? ' children' : ''}" style="${styleData}" ind="${element.id}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
               break
             }
           case "SOLIDFILL":
           case "SMARTOBJECT":
           case "NORMAL":
           case "OTHER":
-            html += `<img class="soulless item so-${element.id}" src="./${element.fileName}" style="${styleData}" ind="${itemIndex}"></img>`
+            html += `<!-- ${element.name} -->\r\n<img class="soulless item so-${element.id}${isChildren ? ' children' : ''}" src="./${element.fileName}" style="${styleData}" ind="${element.id}"></img>`
             break
+          // 组处理
           default:
             if (!element.children) break
             styleData += `width: ${element.width}px;height: ${element.height}px;`
-            html += `<div class="soulless group so-${element.id}" style="${styleData}" ind="${itemIndex}">${getGtmlData(element.children, element.name + '-')}</div>`
+            html += `<!-- ${element.name} -->\r\n<div class="soulless group so-${element.id}" style="${styleData}" ind="${element.id}">${getGtmlData(element.children, true)}</div>`
         }
-        tempArr[itemIndex++] = element
+        tempArr[element.id] = element
       }
       return html
     }
     // 生成页面
     document.getElementById('box').innerHTML = getGtmlData(infoData, '')
 
-    let checkArr = {}
-    const itemList = document.getElementsByClassName('item')
+    // 选中的元素列表
+    let checkArr = []
+    const itemList = document.getElementsByClassName('soulless')
     for (let index = 0; index < itemList.length; index++) {
       const element = itemList[index];
-      element.onclick = function (e) {
-        checkArr[e.target.attributes.ind.value] = !checkArr[e.target.attributes.ind.value]
-        getCode()
-      }
-    }
-
-    function getCode() {
-      let newPug = ''
-      let newStyle = '.so {position: absolute;}\r\n'
-      let ind = 0
-      const checkArrLen = Object.keys(checkArr).length
-      for (const key in checkArr) {
-        if (checkArr[key]) {
-          const element = tempArr[key]
-          newPug += `img.so.so-${ind}(src="@|${element.fileName}|")\r\n`
-          const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
-          const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
-          newStyle += `.so-${ind++} {left: ${left}px;top: ${top}px;z-index: ${checkArrLen - ind}}\r\n`
+      if (!element.classList.contains('children')) {
+        element.onclick = function (e) {
+          const index = e.target.attributes.ind.value
+          if (checkArr.includes(index)) {
+            checkArr.splice(checkArr.findIndex(item => item === index), 1)
+          } else {
+            checkArr.push(index)
+          }
+          
+          getCode()
         }
       }
-      document.getElementById('pug').innerText = newPug
-      document.getElementById('sty').innerText = newStyle
+    }
+    // 输出图片代码
+    function outImg (element, prefix) {
+      const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
+      const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
+      newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
+      newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
+    }
+    // 输出Div代码
+    function outDiv (element, prefix) {
+      const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
+      const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
+      const backgroundImageUrl = `\r\n  background-image: url('@|${element.fileName}|');`
+      newPug += `${prefix}.so.so-${outCodeIndex}\r\n`
+      newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  width: ${element.width}px;\r\n  height: ${element.height}px;\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''}\r\n}\r\n`
+    }
+    function getCode() {
+      // console.log(checkArr)
+      newPug = ''
+      newStyle = '.so {\r\n  position: absolute;\r\n}\r\n'
+      outCodeIndex = 0
+      checkArrLen = Object.keys(checkArr).length
+      for (const index in checkArr) {
+        const key = checkArr[index]
+        if (tempArr[key]) {
+          // console.log(tempArr)
+          const element = tempArr[key]
+          // 判断是否使用DIV 或者使用的是组模式
+          // console.log(element.typename)
+          const useDiv = document.querySelector('#useDiv').checked
+          if (useDiv || element.children) {
+            outDiv(element, '')
+            // 判断是否有子元素
+            if (element.children) {
+              element.children.forEach(childrenInfo => {
+                if (useDiv) {
+                  outDiv(childrenInfo, '  ')
+                } else {
+                  outImg(childrenInfo, '  ')
+                }
+              });
+            }
+          } else {
+            outImg(element, '')
+          }
+          
+        }
+      }
+      document.getElementById('pug').innerHTML = newPug
+      document.getElementById('sty').innerHTML = newStyle
+    }
+    function copyPug() {
+      const input = document.querySelector('#pug');
+      input.select();
+      if (document.execCommand('copy')) {
+        document.execCommand('copy');
+        console.log('复制成功');
+      }
+    }
+    function copyStyle() {
+      const input = document.querySelector('#sty');
+      input.select();
+      if (document.execCommand('copy')) {
+        document.execCommand('copy');
+        console.log('复制成功');
+      }
     }
   </script>
 </html>
