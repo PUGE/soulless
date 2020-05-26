@@ -28,6 +28,9 @@
         <Extension Id="org.puge.ToHTML">
             <DispatchInfo>
                 <Resources>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                    </CEFCommandLine>
                     <MainPath>./index.html</MainPath> <!-- 程序入口-->
                     <ScriptPath>./jsx/main.jsx</ScriptPath> <!-- 插件自动加载的jsx文件 -->
                 </Resources>

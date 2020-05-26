@@ -131,7 +131,6 @@ function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPut
 
 // 将图层新建为文档
 function dupLayers(layerName) {
-  
   var desc143 = new ActionDescriptor();
   var ref73 = new ActionReference();
   ref73.putClass( charIDToTypeID('Dcmn') );
@@ -143,11 +142,11 @@ function dupLayers(layerName) {
   desc143.putReference( charIDToTypeID('Usng'), ref74 );
   try {
     executeAction(charIDToTypeID('Mk  '), desc143, DialogModes.NO );
+    return true
   } catch (err) {
     alert(err)
+    return false
   }
-  
-  
 }
 
 // 输出PNG图片
@@ -242,12 +241,15 @@ function outPutLayer (layerInfo, layer, parentInfo) {
     }
     layerInfo.fileName = ResPrefix + resName + (layerInfo.bounds.specialMode ? ".jpg" : ".png")
     activeDocument.activeLayer = layer;
-    dupLayers(layer);
+    // 新建并保存图片
+    // 图层锁定的情况下有可能没法复制
+    layer.allLocked = false
+    if (dupLayers(layer)) {
+      var saveFile = File(OutPath + layerInfo.fileName);
     
-    var saveFile = File(OutPath + layerInfo.fileName);
-    
-    SavePNG(saveFile, layerInfo.bounds.specialMode);
-    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+      SavePNG(saveFile, layerInfo.bounds.specialMode);
+      app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+    }
   }
   return layerInfo
 }
