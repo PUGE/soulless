@@ -56,20 +56,27 @@
         line-height: 40px;
         text-align: center;
       }
+      input[type="text"], select {
+        width: 100px;
+      }
     </style>
   </head>
   <body>
     <div class="app">
       <div class="bar">
-        <span>导出整个文档</span>
-        <input name="outputtype" id="outPutAll" type="radio" value="all" checked="checked"></input>
-        <span>导出当前图层</span>
-        <input name="outputtype" type="radio" value="select"></input>
+        <span>导出模式:</span>
+        <select id="outPutMode">
+          <option value="all">整个文档</option>
+          <option value="select">选择项目</option>
+          <option value="frame">页面框架</option>
+        </select>
       </div>
       <div class="bar">
-        <span>导出文字</span>
+        <span>导出文字:</span>
         <input type="checkbox" id="outText" name="outText"/>
-        <span>资源命名</span>
+      </div>
+      <div class="bar">
+        <span>命名规则:</span>
         <select id="resOutType">
           <option value="id">图层ID</option>
           <option value="name">图层名称</option>
@@ -77,12 +84,12 @@
         </select>
       </div>
       <div class="bar">
-        <span>资源前缀</span>
+        <span>资源前缀:</span>
         <input id="resPrefix" type="text"></input>
       </div>
       <div class="bar">
-        <span>图片质量(0-100)</span>
-        <input type="number" id="quality" value="80" name="quality"/>
+        <span>图片质量:</span>
+        <input placeholder="0-100" type="number" id="quality" value="80" name="quality"/>
       </div>
       <div class="bar">
         <span>使用png8</span>
@@ -118,7 +125,7 @@
         // 图片质量
         const quality = document.getElementById('quality').value
         const png8 = document.getElementById('png8').checked
-        const outPutAll = document.getElementById('outPutAll').checked
+        const outPutMode = document.getElementById('outPutMode').value
         // 插件目录
         const plugPath = cs.getSystemPath(SystemPath.EXTENSION)
         // 模板文件
@@ -130,7 +137,8 @@
         if (selectPath && selectPath != '') {
           document.getElementsByClassName('is-running')[0].style.display = 'flex'
           //执行main.jsx里面定义的creatNewDocument() 方法
-          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${quality}, ${png8}, ${outPutAll})`, function (res) {
+          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${quality}, ${png8}, '${outPutMode}')`, function (res) {
+            
             res = JSON.parse(res)
             if (res.err === 0) {
               const data = res.data

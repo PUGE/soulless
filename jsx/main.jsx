@@ -91,7 +91,7 @@ function sendMessage (type, data) {
 var Quality = 80
 var Png8 = false
 
-function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPutAll) {
+function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPutMode) {
   Quality = quality
   Png8 = png8
   OutPath = outPath
@@ -102,31 +102,42 @@ function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPut
   docWidth = app.activeDocument.width.as('px')
   docHeight = app.activeDocument.height.as('px')
   // 判断是输出全部还是输出选中组
-  var layer = app.activeDocument
+  
   var parentInfo = null
-  if (!outPutAll) {
-    layer = app.activeDocument.activeLayer
-    if (layer.typename === 'LayerSet') {
-      var layerInfo = getLayerInfo(layer)
-      layerInfo.children = getLayers(layer.layers, layerInfo)
+
+  
+  switch (outPutMode) {
+    case 'all': {
+      
+      var layer = app.activeDocument
+      var returnData = JSON.stringify(getLayers(layer.layers, parentInfo))
+      
+      if (log) alert(log)
       return JSON.stringify({
         err: 0,
-        data: JSON.stringify([layerInfo])
+        data: returnData
       })
-    } else {
-      var layerInfo = getLayerInfo(layer)
-      return JSON.stringify({
-        err: 0,
-        data: JSON.stringify([outPutLayer(layerInfo, layer)])
-      })
+      break
+    }
+    case 'select': {
+      var layer = app.activeDocument.activeLayer
+      if (layer.typename === 'LayerSet') {
+        var layerInfo = getLayerInfo(layer)
+        layerInfo.children = getLayers(layer.layers, layerInfo)
+        return JSON.stringify({
+          err: 0,
+          data: JSON.stringify([layerInfo])
+        })
+      } else {
+        var layerInfo = getLayerInfo(layer)
+        return JSON.stringify({
+          err: 0,
+          data: JSON.stringify([outPutLayer(layerInfo, layer)])
+        })
+      }
+      break
     }
   }
-  var returnData = JSON.stringify(getLayers(layer.layers, parentInfo))
-  if (log) alert(log)
-  return JSON.stringify({
-    err: 0,
-    data: returnData
-  })
 }
 
 // 将图层新建为文档
