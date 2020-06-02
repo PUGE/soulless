@@ -230,7 +230,9 @@
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
+        const width = element.bounds.percentageWidth !== undefined ? element.bounds.percentageWidth + '%' : element.bounds.width + 'px'
+        const height = element.bounds.percentageHeight !== undefined ? element.bounds.percentageHeight + '%' : element.bounds.height + 'px'
+        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${width};\r\n  height: ${height};\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
       }
       
     }
@@ -246,7 +248,9 @@
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${element.bounds.percentageWidth}%;\r\n  height: ${element.bounds.percentageHeight}%;\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''};\r\n}\r\n`
+        const width = element.bounds.percentageWidth !== undefined ? element.bounds.percentageWidth + '%' : element.bounds.width + 'px'
+        const height = element.bounds.percentageHeight !== undefined ? element.bounds.percentageHeight + '%' : element.bounds.height + 'px'
+        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${width};\r\n  height: ${height};\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''};\r\n}\r\n`
       }
     }
 
