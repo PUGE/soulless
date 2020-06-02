@@ -18,7 +18,9 @@ function getPos (layer, parentInfo) {
     left: obj[0].as('px'),
     top: obj[1].as('px'),
     right: obj[2].as('px'),
-    bottom: obj[3].as('px')
+    bottom: obj[3].as('px'),
+    width: obj[2].as('px') - obj[0].as('px'),
+    height: obj[3].as('px') - obj[1].as('px')
   }
 
   for (var key in returnData) {
@@ -32,8 +34,14 @@ function getPos (layer, parentInfo) {
   if (parentInfo) {
     returnData.relativeLeft = returnData.left - parentInfo.bounds.left
     returnData.relativeTop = returnData.top - parentInfo.bounds.top
-    returnData.relativeRight = returnData.right - parentInfo.bounds.right
-    returnData.relativeBottom = returnData.bottom - parentInfo.bounds.bottom
+    returnData.relativeRight = parentInfo.bounds.right - returnData.right
+    returnData.relativeBottom = parentInfo.bounds.bottom - returnData.bottom
+    returnData.percentageLeft = Math.floor(returnData.relativeLeft / parentInfo.bounds.width * 10000) / 100
+    returnData.percentageRight = Math.floor(returnData.relativeRight / parentInfo.bounds.width * 10000) / 100
+    returnData.percentageTop = Math.floor(returnData.relativeTop / parentInfo.bounds.height * 10000) / 100
+    returnData.percentageBottom = Math.floor(returnData.relativeBottom / parentInfo.bounds.height * 10000) / 100
+    returnData.percentageHeight = Math.floor(returnData.height / parentInfo.bounds.height * 10000) / 100
+    returnData.percentageWidth = Math.floor(returnData.width / parentInfo.bounds.width * 10000) / 100
   }
   
   return returnData
