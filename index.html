@@ -66,6 +66,13 @@
       <div class="bar">
         <span>导出模式:</span>
         <select id="outPutMode">
+          <option value="item">页面元素</option>
+          <option value="frame">页面框架</option>
+        </select>
+      </div>
+      <div class="bar">
+        <span>导出范围:</span>
+        <select id="outPutRange">
           <option value="all">整个文档</option>
           <option value="select">选择项目</option>
           <option value="frame">页面框架</option>
@@ -125,20 +132,19 @@
         // 图片质量
         const quality = document.getElementById('quality').value
         const png8 = document.getElementById('png8').checked
-        const outPutMode = document.getElementById('outPutMode').value
+        const outPutRange = document.getElementById('outPutRange').value
         // 插件目录
-        const plugPath = cs.getSystemPath(SystemPath.EXTENSION)
-        // 模板文件
-        let template = window.cep.fs.readFile(plugPath + '/template.html').data
-        
+        const plugPath = cs.getSystemPath(SystemPath.EXTENSION) 
         
         var selectPath = window.cep.fs.showOpenDialog(false, true, "选择输出目录", "", "").data
         // 判断用户是否选择了输出目录
         if (selectPath && selectPath != '') {
           document.getElementsByClassName('is-running')[0].style.display = 'flex'
           //执行main.jsx里面定义的creatNewDocument() 方法
-          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${quality}, ${png8}, '${outPutMode}')`, function (res) {
-            
+          cs.evalScript(`getTree('${selectPath}/', ${outPutText}, '${resOutType}', '${resPrefix}', ${quality}, ${png8}, '${outPutRange}')`, function (res) {
+            // 根据不同模式选择不同的模板文件
+            const outPutMode = document.getElementById('outPutMode').value
+            let template = window.cep.fs.readFile(plugPath + (outPutMode === 'item' ? '/template.html' : '/frame.html')).data
             res = JSON.parse(res)
             if (res.err === 0) {
               const data = res.data

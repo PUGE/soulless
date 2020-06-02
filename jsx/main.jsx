@@ -99,7 +99,7 @@ function sendMessage (type, data) {
 var Quality = 80
 var Png8 = false
 
-function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPutMode) {
+function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPutRange) {
   Quality = quality
   Png8 = png8
   OutPath = outPath
@@ -114,7 +114,7 @@ function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPut
   var parentInfo = null
 
   
-  switch (outPutMode) {
+  switch (outPutRange) {
     case 'all': {
       
       var layer = app.activeDocument
