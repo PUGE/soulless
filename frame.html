@@ -63,6 +63,27 @@
       .so-box {
         position: relative;
         box-sizing: border-box;
+        border: 1px solid #ccc;
+        margin: 0 auto;
+        margin-top: 30px;
+      }
+      p, ul, li {
+        margin: 0;
+        padding: 0;
+      }
+      p {
+        line-height: 1.7;
+      }
+      ul, li {
+        list-style-type: none;
+      }
+      li a {
+        color: #333;
+        text-decoration: none;
+      }
+      li a:hover {
+        color: #e60012;
+        text-decoration: none;
       }
       /* <!-- css-output --> */
     </style>
@@ -76,9 +97,17 @@
       // <!-- script-output -->
     </script>
     <script>
-      let designWidth = 1000
+      let designWidth = 1100
       let newHTML = ''
       let zoom = 1
+      function integerNumber (number) {
+        const temp = number % 5
+        if (temp < (5 / 2)) {
+          return number - temp
+        } else {
+          return number + (5 - temp)
+        }
+      }
       // 先找出最大的
       infoData.forEach(element => {
         if (element.typename === "LayerSet") {
@@ -86,23 +115,62 @@
         }
       });
       function handleGroup (groupInfo, isRoot) {
+        let zIndex = 0
         for (let index = 0; index < groupInfo.length; index++) {
           
           const element = groupInfo[index];
           if (element.typename === "LayerSet") {
             if (isRoot) {
-              newHTML += `<div class="so-box so-${element.itemIndex}" style="width: ${parseInt(element.bounds.width * zoom)}px;height: ${parseInt(element.bounds.height * zoom)}px;">`
+              const style = `width: ${integerNumber(element.bounds.width * zoom)}px;height: ${integerNumber(element.bounds.height * zoom)}px;`
+              newHTML += `<div class="so-box so-${element.itemIndex}" style="${style}">`
             } else {
-              console.log(element)
-              const width = parseInt(element.bounds.width * zoom)
-              const height = parseInt(element.bounds.height * zoom)
-              const left = parseInt(element.bounds.relativeLeft * zoom)
-              const top = parseInt(element.bounds.relativeTop * zoom)
+              const width = integerNumber(element.bounds.width * zoom)
+              const height = integerNumber(element.bounds.height * zoom)
+              const left = integerNumber(element.bounds.relativeLeft * zoom)
+              const top = integerNumber(element.bounds.relativeTop * zoom)
               newHTML += `<div class="so so-${element.itemIndex}" style="width: ${width}px;height: ${height}px;left: ${left}px;top: ${top}px;">`
             }
-            if (element.children) handleGroup(element.children, false)
+            if (element.children) {
+              handleGroup(element.children, false)
+            }
             newHTML += `</div>`
+          } else {
+            const width = integerNumber(element.bounds.width * zoom)
+            const height = integerNumber(element.bounds.height * zoom)
+            const left = integerNumber(element.bounds.relativeLeft * zoom)
+            const top = integerNumber(element.bounds.relativeTop * zoom)
+            // 判断是否是题图
+            // console.log(element)
+            if (element.bounds.top < 2 && element.bounds.left < 2 && element.bounds.width > designWidth) {
+              newHTML += `<img style="width: 100%;height: auto;" src="./${element.fileName}">`
+            } else if (element.kind === "TEXT" && element.textItem) {
+              // 根据换行符分割段数
+              let contentsList = element.textItem.contents.split('\r')
+              let contentsListNoEmpty = []
+              // 去掉空数组
+              contentsList.forEach(element => {
+                if (element && element != undefined && element != '') {
+                  contentsListNoEmpty.push(element)
+                }
+              });
+              // 根据分割的段数判断是否是列表
+              if (contentsListNoEmpty.length > 1) {
+                newHTML += `<ul style="color: ${element.textItem.color};line-height: ${parseInt(height / contentsListNoEmpty.length)}px;position: absolute;font-size: ${element.textItem.size}px;width: ${width}px;height: ${height}px;left: ${left}px;top: ${top}px;"><li><a href="#">${contentsListNoEmpty.join('</a></li><li><a href="#">')}</a></li></ul>`
+              } else {
+                // 普通文字
+                console.log(element)
+                // 判断是否多行
+                if (element.bounds.height > (element.textItem.size * 1.8)) {
+                  newHTML += `<p style="color: ${element.textItem.color};height: ${element.bounds.height}px;position: absolute;font-size: ${element.textItem.size}px;width: ${width}px;left: ${left}px;top: ${top}px;z-index: ${zIndex};">${contentsListNoEmpty.join('<br>')}</p>`
+                } else {
+                  newHTML += `<p style="color: ${element.textItem.color};line-height: ${element.bounds.height}px;position: absolute;font-size: ${element.bounds.height}px;width: ${width}px;left: ${left}px;top: ${top}px;z-index: ${zIndex};">${contentsListNoEmpty.join('<br>')}</p>`
+                }
+              }
+            } else {
+              newHTML += `<img style="position: absolute;left: ${left}px;top: ${top}px;z-index: ${zIndex};" src="./${element.fileName}">`
+            }
           }
+          zIndex--
         }
       }
       handleGroup(infoData, true)
