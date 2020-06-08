@@ -139,6 +139,11 @@
       <!-- page-output -->
     </div>
     <div class="control-box">
+      <h5>输出语言</h5>
+      <select id="useLanguage">
+        <option value ="html">输出HTML代码</option>
+        <option value ="pug">输出Pug代码</option>
+      </select>
       <h5>使用标签</h5>
       <select id="outPutMode">
         <option value ="img">使用img标签</option>
@@ -168,6 +173,7 @@
     let outCodeIndex = 0
     let checkArrLen = 0
     let useUnit = document.getElementById('useUnit').value
+    let useLanguage = document.getElementById('useLanguage').value == 'pug'
     function getGtmlData(dataArr, isChildren) {
       let html = ''
       for (let index = 0; index < dataArr.length; index++) {
@@ -220,8 +226,12 @@
     }
     // 输出图片代码
     function outImg (element, prefix) {
+      if (useLanguage) {
+        newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
+      } else {
+        newPug += `${prefix}<img class="so so-${outCodeIndex}"src="./${element.fileName}">\r\n`
+      }
       
-      newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
@@ -383,6 +393,7 @@
     }
     function getCode() {
       useUnit = document.getElementById('useUnit').value
+      usePug = document.getElementById('useLanguage').value == 'pug'
       // console.log(checkArr)
       newPug = ''
       newStyle = '.so {\r\n  position: absolute;\r\n}\r\n'
