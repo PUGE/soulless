@@ -249,7 +249,11 @@
     // 输出Div代码
     function outDiv (element, prefix) {
       const backgroundImageUrl = `\r\n  background-image: url('@|${element.fileName}|');`
-      newPug += `${prefix}.so.so-${outCodeIndex}\r\n`
+      if (useLanguage) {
+        newPug += `${prefix}.so.so-${outCodeIndex}\r\n`
+      } else {
+        newPug += `${prefix}<div class="so so-${outCodeIndex}">\r\n`
+      }
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
@@ -268,7 +272,11 @@
     function outInput (element, prefix) {
       
       const backgroundImageUrl = `background-image: url('@|${element.fileName}|')`
-      newPug += `${prefix}input.so.so-${outCodeIndex}\r\n`
+      if (useLanguage) {
+        newPug += `${prefix}input.so.so-${outCodeIndex}\r\n`
+      } else {
+        newPug += `${prefix}<input class="so so-${outCodeIndex}">\r\n`
+      }
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
@@ -308,7 +316,11 @@
     // 输出Input代码
     function outTextarea (element, prefix) {
       const backgroundImageUrl = `background-image: url('@|${element.fileName}|')`
-      newPug += `${prefix}textarea.so.so-${outCodeIndex}\r\n`
+      if (useLanguage) {
+        newPug += `${prefix}textarea.so.so-${outCodeIndex}\r\n`
+      } else {
+        newPug += `${prefix}<textarea class="so so-${outCodeIndex}"></textarea>\r\n`
+      }
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
@@ -349,7 +361,12 @@
     function outText (element, prefix) {
       // 去掉文字中的换行符
       element.textItem.contents = element.textItem.contents.replace('\r', '<br>')
-      newPug += `${prefix}.so.so-${outCodeIndex} ${element.textItem.contents}\r\n`
+      if (useLanguage) {
+        newPug += `${prefix}.so.so-${outCodeIndex} ${element.textItem.contents}\r\n`
+      } else {
+        newPug += `${prefix}<div class="so so-${outCodeIndex}">${element.textItem.contents}</div>\r\n`
+      }
+      
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left + 'px'
@@ -389,6 +406,9 @@
         element.children.forEach(childrenInfo => {
           outPutElement (outPutMode, childrenInfo, prefix + '  ')
         });
+      }
+      if (!useLanguage && (element.typename === 'LayerSet' || outPutMode == 'div')) {
+        newPug += `${prefix}</div>\r\n`
       }
     }
     function getCode() {
