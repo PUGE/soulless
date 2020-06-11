@@ -150,7 +150,7 @@
             // 根据不同模式选择不同的模板文件
             const outPutMode = document.getElementById('outPutMode').value
             if (outPutMode === 'item') {
-              let template = window.cep.fs.readFile(plugPath + '/frame.html').data
+              let template = window.cep.fs.readFile(plugPath + '/template.html').data
               
               replaceData += `const infoData = ${data}`
               // 为模板添加配置信息

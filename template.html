@@ -140,7 +140,7 @@
     </div>
     <div class="control-box">
       <h5>输出语言</h5>
-      <select id="useLanguage">
+      <select id="usePug">
         <option value ="html">输出HTML代码</option>
         <option value ="pug">输出Pug代码</option>
       </select>
@@ -173,7 +173,7 @@
     let outCodeIndex = 0
     let checkArrLen = 0
     let useUnit = document.getElementById('useUnit').value
-    let useLanguage = document.getElementById('useLanguage').value == 'pug'
+    let usePug = document.getElementById('usePug').value == 'pug'
     function getGtmlData(dataArr, isChildren) {
       let html = ''
       for (let index = 0; index < dataArr.length; index++) {
@@ -226,7 +226,7 @@
     }
     // 输出图片代码
     function outImg (element, prefix) {
-      if (useLanguage) {
+      if (usePug) {
         newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
       } else {
         newPug += `${prefix}<img class="so so-${outCodeIndex}"src="./${element.fileName}">\r\n`
@@ -249,7 +249,7 @@
     // 输出Div代码
     function outDiv (element, prefix) {
       const backgroundImageUrl = `\r\n  background-image: url('@|${element.fileName}|');`
-      if (useLanguage) {
+      if (usePug) {
         newPug += `${prefix}.so.so-${outCodeIndex}\r\n`
       } else {
         newPug += `${prefix}<div class="so so-${outCodeIndex}">\r\n`
@@ -272,7 +272,7 @@
     function outInput (element, prefix) {
       
       const backgroundImageUrl = `background-image: url('@|${element.fileName}|')`
-      if (useLanguage) {
+      if (usePug) {
         newPug += `${prefix}input.so.so-${outCodeIndex}\r\n`
       } else {
         newPug += `${prefix}<input class="so so-${outCodeIndex}">\r\n`
@@ -316,7 +316,7 @@
     // 输出Input代码
     function outTextarea (element, prefix) {
       const backgroundImageUrl = `background-image: url('@|${element.fileName}|')`
-      if (useLanguage) {
+      if (usePug) {
         newPug += `${prefix}textarea.so.so-${outCodeIndex}\r\n`
       } else {
         newPug += `${prefix}<textarea class="so so-${outCodeIndex}"></textarea>\r\n`
@@ -361,7 +361,7 @@
     function outText (element, prefix) {
       // 去掉文字中的换行符
       element.textItem.contents = element.textItem.contents.replace('\r', '<br>')
-      if (useLanguage) {
+      if (usePug) {
         newPug += `${prefix}.so.so-${outCodeIndex} ${element.textItem.contents}\r\n`
       } else {
         newPug += `${prefix}<div class="so so-${outCodeIndex}">${element.textItem.contents}</div>\r\n`
@@ -407,13 +407,13 @@
           outPutElement (outPutMode, childrenInfo, prefix + '  ')
         });
       }
-      if (!useLanguage && (element.typename === 'LayerSet' || outPutMode == 'div')) {
+      if (!usePug && (element.typename === 'LayerSet' || outPutMode == 'div')) {
         newPug += `${prefix}</div>\r\n`
       }
     }
     function getCode() {
       useUnit = document.getElementById('useUnit').value
-      usePug = document.getElementById('useLanguage').value == 'pug'
+      usePug = document.getElementById('usePug').value == 'pug'
       // console.log(checkArr)
       newPug = ''
       newStyle = '.so {\r\n  position: absolute;\r\n}\r\n'
@@ -427,7 +427,7 @@
           // 判断是否使用DIV 或者使用的是组模式
           // console.log(element.typename)
           // 判断是否为输出文字
-          if (element.kind === "TEXT") {
+          if (element.kind === "TEXT" && outPutText) {
             outText(element, '')
             continue
           }
