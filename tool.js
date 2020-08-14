@@ -3,6 +3,7 @@ function dataToHTML (infoData) {
   let newHTML = ''
   let outStyle = ''
   let zoom = 1
+  // 让像素单位都是5的倍数
   function integerNumber (number) {
     const temp = number % 5
     if (temp < (5 / 2)) {
@@ -12,11 +13,11 @@ function dataToHTML (infoData) {
     }
   }
   // 先找出最大的
-  infoData.forEach(element => {
-    if (element.typename === "LayerSet") {
-      if ((1200 / element.bounds.width) < zoom) zoom = 1200 / element.bounds.width
-    }
-  });
+  // infoData.forEach(element => {
+  //   if (element.typename === "LayerSet") {
+  //     if ((1200 / element.bounds.width) < zoom) zoom = 1200 / element.bounds.width
+  //   }
+  // });
   function handleGroup (groupInfo, isRoot, prefix) {
     let zIndex = 0
     for (let index = 0; index < groupInfo.length; index++) {
@@ -25,7 +26,14 @@ function dataToHTML (infoData) {
       if (element.typename === "LayerSet") {
         if (isRoot) {
           const style = ``
-          newHTML += `${prefix}<div class="so-box so-${element.itemIndex}">\n`
+          // 如果是页面第一条那么不需要上边距
+          let clssStr = ``
+          if (newHTML !== ``) {
+            clssStr = `so-box so-${element.itemIndex}`
+          } else {
+            clssStr = `so-top so-${element.itemIndex}`
+          }
+          newHTML += `${prefix}<div class="${clssStr}">\n`
           outStyle += `\n.so-${element.itemIndex} {\n  width: ${integerNumber(element.bounds.width * zoom)}px;\n  height: ${integerNumber(element.bounds.height * zoom)}px;\n}`
         } else {
           const width = integerNumber(element.bounds.width * zoom)
@@ -61,21 +69,20 @@ function dataToHTML (infoData) {
           // 根据分割的段数判断是否是列表
           if (contentsListNoEmpty.length > 1) {
             newHTML += `${prefix}<ul class="so so-${element.itemIndex}">\n${prefix}  <li><a href="#">${contentsListNoEmpty.join('</a></li>\n' + prefix +'  <li><a href="#">')}</a></li>\n${prefix}</ul>\n`
-            outStyle += `\n.so-${element.itemIndex} {\n  color: ${element.textItem.color};\n  line-height: ${parseInt(height / contentsListNoEmpty.length)}px;\n  position: absolute;\n  font-size: ${element.textItem.size}px;\n  width: ${width}px;\n  height: ${height}px;\n  left: ${left}px;\n  top: ${top}px;\n}`
+            outStyle += `\n.so-${element.itemIndex} {\n  color: ${element.textItem.color};\n  line-height: ${parseInt(height / contentsListNoEmpty.length)}px;\n  font-size: ${element.textItem.size}px;\n  width: ${width}px;\n  height: ${height}px;\n  left: ${left}px;\n  top: ${top}px;\n}`
           } else {
             // 普通文字
-            console.log(element)
             // 判断是否多行
             if (element.bounds.height > (element.textItem.size * 1.8)) {
               newHTML += `${prefix}<p class="so-${element.itemIndex}">${contentsListNoEmpty.join('<br>')}</p>\n`
-              outStyle += `\n.so-${element.itemIndex} {\n  color: ${element.textItem.color};\n  height: ${element.bounds.height}px;\n  position: absolute;\n  font-size: ${element.textItem.size}px;\n  width: ${width}px;\n  left: ${left}px;\n  top: ${top}px;\n  z-index: ${zIndex};\n}`
+              outStyle += `\n.so-${element.itemIndex} {\n  color: ${element.textItem.color};\n  height: ${element.bounds.height}px;\n  font-size: ${element.textItem.size}px;\n  width: ${width}px;\n  left: ${left}px;\n  top: ${top}px;\n  z-index: ${zIndex};\n}`
             } else {
               newHTML += `${prefix}<p class="so-${element.itemIndex}">${contentsListNoEmpty.join('<br>')}</p>\n`
-              outStyle += `\n.so-${element.itemIndex} {\n  color: ${element.textItem.color};\n  line-height: ${element.bounds.height}px;\n  position: absolute;\n  font-size: ${element.bounds.height}px;\n  width: ${width}px;\n  left: ${left}px;\n  top: ${top}px;\n  z-index: ${zIndex};\n}`
+              outStyle += `\n.so-${element.itemIndex} {\n  color: ${element.textItem.color};\n  line-height: ${element.bounds.height}px;\n  font-size: ${element.bounds.height}px;\n  width: ${width}px;\n  left: ${left}px;\n  top: ${top}px;\n  z-index: ${zIndex};\n}`
             }
           }
         } else {
-          newHTML += `${prefix}<img style="position: absolute;left: ${left}px;top: ${top}px;z-index: ${zIndex};" src="./${element.fileName}">\n`
+          newHTML += `${prefix}<img src="./${element.fileName}">\n`
         }
       }
       zIndex--

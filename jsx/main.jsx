@@ -22,6 +22,21 @@ function getPos (layer, parentInfo) {
     width: obj[2].as('px') - obj[0].as('px'),
     height: obj[3].as('px') - obj[1].as('px')
   }
+  if (returnData.left < 0) {
+    returnData.width += returnData.left
+    returnData.left = 0
+  }
+  if (returnData.width > docWidth) {
+    returnData.width = docWidth
+  }
+  // alert(returnData.width)
+  if (returnData.top < 0) {
+    returnData.height += returnData.top
+    returnData.top = 0
+  }
+  if (returnData.height > docHeight) {
+    returnData.height = docHeight
+  }
 
   for (var key in returnData) {
     if (returnData[key] < 0) {
