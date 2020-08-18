@@ -195,7 +195,10 @@ function SavePNG(saveFile, specialMode) {
   // alert(pngSaveOptions.PNG8)
   pngSaveOptions.quality = Quality
   if (!specialMode) activeDocument.trim(TrimType.TRANSPARENT, true, true, true, true);
+  // alert(activeDocument.height.as('px'))
   activeDocument.exportDocument(saveFile, ExportType.SAVEFORWEB, pngSaveOptions);
+  // 返回图片的宽高
+  return [activeDocument.width.as('px'), activeDocument.height.as('px')]
 }
 
 
@@ -281,7 +284,9 @@ function outPutLayer (layerInfo, layer, parentInfo) {
     if (dupLayers(layer)) {
       var saveFile = File(OutPath + layerInfo.fileName);
     
-      SavePNG(saveFile, layerInfo.bounds.specialMode);
+      const fileInfo = SavePNG(saveFile, layerInfo.bounds.specialMode);
+      layerInfo.bounds.fileWeight = fileInfo[0]
+      layerInfo.bounds.fileHeight = fileInfo[1]
       app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
     }
   }
