@@ -50,7 +50,7 @@ function dataToHTML (infoData) {
           // 判断是否为超宽元素(例如题图之类)
           if (width > designWidth) {
             outStyle += `\n  max-width: ${width}px;`
-            newHTML += `${prefix}<div class="${clssStr} super-wide" autoBottomMar="${marginBottom}">\n`
+            newHTML += `${prefix}<div class="${clssStr} super-wide" o-bottom="${marginBottom}" o-height="${height}">\n`
           } else {
             newHTML += `${prefix}<div class="${clssStr}">\n`
           }
@@ -86,7 +86,7 @@ function dataToHTML (infoData) {
         
         // console.log(element)
         if (element.bounds.top < 2 && element.bounds.left < 2 && element.bounds.width > designWidth) {
-          newHTML += `${prefix}<img class="super-wide" style="width: 100%;height: auto;max-width: ${width}px;margin-bottom: ${marginBottom}px;" src="./${element.fileName}">\n`
+          newHTML += `${prefix}<img class="super-wide" style="width: 100%;height: auto;max-width: ${width}px;margin-bottom: ${marginBottom}px;" src="./${element.fileName}" o-bottom="${marginBottom}" o-height="${height}">\n`
         } else if (element.kind === "TEXT" && element.textItem) {
           // 根据换行符分割段数
           let contentsList = element.textItem.contents.split('\r')

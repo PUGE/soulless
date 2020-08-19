@@ -114,7 +114,7 @@
         margin-left: auto;
         margin-right: auto;
       }
-      /* <!-- css-output --> */
+      /* style-output */
     </style>
     
   </head>
@@ -122,8 +122,22 @@
     <div id="box" class="page-box">
       <!-- page-output -->
     </div>
-    <style>
-      /* style-output */
-    </style>
+    <script>
+      setTimeout(() => {
+        var autoBottomMarList = document.querySelectorAll('[o-bottom]')
+        for (var index = 0; index < autoBottomMarList.length; index++) {
+          var element = autoBottomMarList[index];
+          var bottomNum = parseInt(element.getAttribute("o-bottom"))
+          var heightNum = parseInt(element.getAttribute("o-height"))
+          if (bottomNum !== 0) {
+            
+            // 判断高度是否与设计高度一致
+            if (element.clientHeight != heightNum) {
+              element.style.marginBottom = (element.clientHeight / heightNum) * bottomNum + 'px'
+            }
+          }
+        }
+      }, 100);
+    </script>
   </body>
 </html>
