@@ -138,6 +138,8 @@ function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPut
       if (log) alert(log)
       return JSON.stringify({
         err: 0,
+        docWidth: docWidth,
+        docHeight: docHeight,
         data: returnData
       })
       break
@@ -149,12 +151,16 @@ function getTree (outPath, outText, resOutType, resPrefix, quality, png8, outPut
         layerInfo.children = getLayers(layer.layers, layerInfo)
         return JSON.stringify({
           err: 0,
+          docWidth: docWidth,
+          docHeight: docHeight,
           data: JSON.stringify([layerInfo])
         })
       } else {
         var layerInfo = getLayerInfo(layer)
         return JSON.stringify({
           err: 0,
+          docWidth: docWidth,
+          docHeight: docHeight,
           data: JSON.stringify([outPutLayer(layerInfo, layer)])
         })
       }

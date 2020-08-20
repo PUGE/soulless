@@ -1,7 +1,7 @@
 let designWidth = 1200
 
 
-function dataToHTML (infoData) {
+function dataToHTML (infoData, docWidth, docHeight) {
   let newHTML = ''
   let outStyle = ''
   // 让像素单位都是5的倍数
@@ -48,9 +48,9 @@ function dataToHTML (infoData) {
           outStyle += `\n.so-${element.itemIndex} {\n  width: ${width}px;\n  height: ${height}px;\n  margin-bottom: ${marginBottom}px;`
           newHTML += `${prefix}<!-- ${element.name} ${groupInfo[index - 1] !== undefined ? groupInfo[index - 1].bounds.bottom : top} ${top} -->\n`
           // 判断是否为超宽元素(例如题图之类)
-          if (width > designWidth) {
-            outStyle += `\n  max-width: ${width}px;`
-            newHTML += `${prefix}<div class="${clssStr} super-wide" o-bottom="${marginBottom}" o-height="${height}">\n`
+          if (width == docWidth) {
+            outStyle += `\n  max-width: ${width}px;background-repeat: no-repeat;`
+            newHTML += `${prefix}<div class="${clssStr}" o-bottom="${marginBottom}" o-height="${height}">\n`
           } else {
             newHTML += `${prefix}<div class="${clssStr}">\n`
           }
@@ -85,7 +85,7 @@ function dataToHTML (infoData) {
         // 判断是否是题图
         
         // console.log(element)
-        if (element.bounds.top < 2 && element.bounds.left < 2 && element.bounds.width > designWidth) {
+        if (element.bounds.top < 2 && element.bounds.left < 2 && element.bounds.width == docWidth) {
           newHTML += `${prefix}<img class="super-wide" style="width: 100%;height: auto;max-width: ${width}px;margin-bottom: ${marginBottom}px;" src="./${element.fileName}" o-bottom="${marginBottom}" o-height="${height}">\n`
         } else if (element.kind === "TEXT" && element.textItem) {
           // 根据换行符分割段数
