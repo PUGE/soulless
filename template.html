@@ -227,10 +227,19 @@
     }
     // 输出图片代码
     function outImg (element, prefix) {
-      if (usePug) {
-        newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
+      if (element.kind == 'TEXT') {
+        let styleData = `font-size: ${parseInt(element.textItem.size)}px;color: ${element.textItem.color};line-height: ${parseInt(element.textItem.leading)}px;`
+        if (usePug) {
+          newPug += `${prefix}span.so.so-${outCodeIndex}(style="${styleData}") ${element.textItem.contents.replace(/\r/g, '<br>')}\r\n`
+        } else {
+          newPug += `<!-- ${element.name} -->\r\n<span class="soulless so-${element.id}" style="${styleData}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
+        }
       } else {
-        newPug += `${prefix}<img class="so so-${outCodeIndex}"src="./${element.fileName}">\r\n`
+        if (usePug) {
+          newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
+        } else {
+          newPug += `${prefix}<img class="so so-${outCodeIndex}"src="./${element.fileName}">\r\n`
+        }
       }
       
       // 判断使用的单位
