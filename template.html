@@ -152,15 +152,17 @@
         <option value="input">使用input标签</option>
         <option value="textarea">使用textarea标签</option>
       </select>
-      <h5>PUG代码<img src="https://cunchu.site/swg/copy.svg" onclick="copyPug()"></h5>
+      <h5>PUG代码<img src="https://cunchu.site/upload/storage/copy.svg" onclick="copyPug()"></h5>
       <textarea id="pug"></textarea>
       <h5>使用单位</h5>
       <select id="useUnit">
         <option value ="px">像素</option>
         <option value ="percentage">百分比</option>
       </select>
-      <h5>CSS代码<img src="https://cunchu.site/swg/copy.svg" onclick="copyStyle()"></h5>
+      <h5>CSS代码<img src="https://cunchu.site/upload/storage/copy.svg" onclick="copyStyle()"></h5>
       <textarea id="sty"></textarea>
+      <h5>资源前缀</h5>
+      <input type="text" id="qz" value="so-">
     </div>
     <script>
       // <!-- script-output -->
@@ -175,6 +177,7 @@
     let checkArrLen = 0
     let useUnit = document.getElementById('useUnit').value
     let usePug = document.getElementById('usePug').value == 'pug'
+    let zyqz = document.getElementById('qz').value
     function getGtmlData(dataArr, isChildren) {
       let html = ''
       for (let index = 0; index < dataArr.length; index++) {
@@ -185,20 +188,20 @@
           case "TEXT":
             if (outPutText) {
               styleData += `font-size: ${element.textItem.size}px;color: ${element.textItem.color};line-height: ${element.textItem.leading}px;`
-              html += `<!-- ${element.name} -->\r\n<span class="soulless so-${element.id}${isChildren ? ' children' : ''}" style="${styleData}" ind="${element.id}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
+              html += `<!-- ${element.name} -->\r\n<span class="soulless ${zyqz}${element.id}${isChildren ? ' children' : ''}" style="${styleData}" ind="${element.id}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
               break
             }
           case "SOLIDFILL":
           case "SMARTOBJECT":
           case "NORMAL":
           case "OTHER":
-            html += `<!-- ${element.name} -->\r\n<img class="soulless item so-${element.id}${isChildren ? ' children' : ''}" src="./${element.fileName}" style="${styleData}" ind="${element.id}"></img>`
+            html += `<!-- ${element.name} -->\r\n<img class="soulless item ${zyqz}${element.id}${isChildren ? ' children' : ''}" src="./${element.fileName}" style="${styleData}" ind="${element.id}"></img>`
             break
           // 组处理
           default:
             if (!element.children) break
             styleData += `width: ${element.bounds.width}px;height: ${element.bounds.height}px;`
-            html += `<!-- ${element.name} -->\r\n<div class="soulless group so-${element.id}" style="${styleData}" ind="${element.id}">${getGtmlData(element.children, true)}</div>`
+            html += `<!-- ${element.name} -->\r\n<div class="soulless group ${zyqz}${element.id}" style="${styleData}" ind="${element.id}">${getGtmlData(element.children, true)}</div>`
         }
         tempArr[element.id] = element
       }
@@ -227,23 +230,32 @@
     }
     // 输出图片代码
     function outImg (element, prefix) {
-      if (usePug) {
-        newPug += `${prefix}img.so.so-${outCodeIndex}(src="@|${element.fileName}|")\r\n`
+      if (element.kind == 'TEXT' && outPutText) {
+        let styleData = `font-size: ${parseInt(element.textItem.size)}px;color: ${element.textItem.color};line-height: ${parseInt(element.textItem.leading)}px;`
+        if (usePug) {
+          newPug += `${prefix}span.so.${zyqz}${outCodeIndex}(style="${styleData}") ${element.textItem.contents.replace(/\r/g, '<br>')}\r\n`
+        } else {
+          newPug += `<!-- ${element.name} -->\r\n<span class="soulless ${zyqz}${element.id}" style="${styleData}">${element.textItem.contents.replace(/\r/g, '<br>')}</span>`
+        }
       } else {
-        newPug += `${prefix}<img class="so so-${outCodeIndex}"src="./${element.fileName}">\r\n`
+        if (usePug) {
+          newPug += `${prefix}img.so.${zyqz}${outCodeIndex}(src="@|${element.fileName}|")\r\n`
+        } else {
+          newPug += `${prefix}<img class="so ${zyqz}${outCodeIndex}"src="./${element.fileName}">\r\n`
+        }
       }
       
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
         const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
+        newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
         const width = element.bounds.percentageWidth !== undefined ? element.bounds.percentageWidth + '%' : element.bounds.width + 'px'
         const height = element.bounds.percentageHeight !== undefined ? element.bounds.percentageHeight + '%' : element.bounds.height + 'px'
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${width};\r\n  height: ${height};\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
+        newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${width};\r\n  height: ${height};\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n}\r\n`
       }
       
     }
@@ -251,21 +263,21 @@
     function outDiv (element, prefix) {
       const backgroundImageUrl = `\r\n  background-image: url('@|${element.fileName}|');`
       if (usePug) {
-        newPug += `${prefix}.so.so-${outCodeIndex}\r\n`
+        newPug += `${prefix}.so.${zyqz}${outCodeIndex}\r\n`
       } else {
-        newPug += `${prefix}<div class="so so-${outCodeIndex}">\r\n`
+        newPug += `${prefix}<div class="so ${zyqz}${outCodeIndex}">\r\n`
       }
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
         const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  width: ${element.bounds.width}px;\r\n  height: ${element.bounds.height}px;\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''};\r\n}\r\n`
+        newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  width: ${element.bounds.width}px;\r\n  height: ${element.bounds.height}px;\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''};\r\n}\r\n`
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
         const width = element.bounds.percentageWidth !== undefined ? element.bounds.percentageWidth + '%' : element.bounds.width + 'px'
         const height = element.bounds.percentageHeight !== undefined ? element.bounds.percentageHeight + '%' : element.bounds.height + 'px'
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${width};\r\n  height: ${height};\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''};\r\n}\r\n`
+        newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  width: ${width};\r\n  height: ${height};\r\n  z-index: ${checkArrLen - outCodeIndex};${element.fileName ? backgroundImageUrl : ''};\r\n}\r\n`
       }
     }
 
@@ -274,15 +286,15 @@
       
       const backgroundImageUrl = `background-image: url('@|${element.fileName}|')`
       if (usePug) {
-        newPug += `${prefix}input.so.so-${outCodeIndex}\r\n`
+        newPug += `${prefix}input.so.${zyqz}${outCodeIndex}\r\n`
       } else {
-        newPug += `${prefix}<input class="so so-${outCodeIndex}">\r\n`
+        newPug += `${prefix}<input class="so ${zyqz}${outCodeIndex}">\r\n`
       }
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
         const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
-        newStyle += `.so-${outCodeIndex++} {
+        newStyle += `.${zyqz}${outCodeIndex++} {
   left: ${left}px;
   top: ${top}px;
   width: ${element.bounds.width - 20}px;
@@ -298,7 +310,7 @@
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
-        newStyle += `.so-${outCodeIndex++} {
+        newStyle += `.${zyqz}${outCodeIndex++} {
   left: ${left};
   top: ${top};
   width: ${element.bounds.percentageWidth - 2}%;
@@ -318,15 +330,15 @@
     function outTextarea (element, prefix) {
       const backgroundImageUrl = `background-image: url('@|${element.fileName}|')`
       if (usePug) {
-        newPug += `${prefix}textarea.so.so-${outCodeIndex}\r\n`
+        newPug += `${prefix}textarea.so.${zyqz}${outCodeIndex}\r\n`
       } else {
-        newPug += `${prefix}<textarea class="so so-${outCodeIndex}"></textarea>\r\n`
+        newPug += `${prefix}<textarea class="so ${zyqz}${outCodeIndex}"></textarea>\r\n`
       }
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left
         const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop :element.bounds.top
-        newStyle += `.so-${outCodeIndex++} {
+        newStyle += `.${zyqz}${outCodeIndex++} {
   left: ${left}px;
   top: ${top}px;
   width: ${element.bounds.width - 20}px;
@@ -342,7 +354,7 @@
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
-        newStyle += `.so-${outCodeIndex++} {
+        newStyle += `.${zyqz}${outCodeIndex++} {
   left: ${left};
   top: ${top};
   width: ${element.bounds.width - 2}%;
@@ -363,20 +375,25 @@
       // 去掉文字中的换行符
       element.textItem.contents = element.textItem.contents.replace('\r', '<br>')
       if (usePug) {
-        newPug += `${prefix}.so.so-${outCodeIndex} ${element.textItem.contents}\r\n`
+        newPug += `${prefix}.so.${zyqz}${outCodeIndex} ${element.textItem.contents}\r\n`
       } else {
-        newPug += `${prefix}<div class="so so-${outCodeIndex}">${element.textItem.contents}</div>\r\n`
+        newPug += `${prefix}<div class="so ${zyqz}${outCodeIndex}">${element.textItem.contents}</div>\r\n`
       }
       
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left + 'px'
+<<<<<<< HEAD
         const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop:element.bounds.top + 'px'
         newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
+=======
+        const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop + '%'  :element.bounds.top + 'px'
+        newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
+>>>>>>> 1ad889ae3b77d3b1e3ad21be8a7040a77208306a
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
+        newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left};\r\n  top: ${top};\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
       }
     }
     function outPutElement (outPutMode, element, prefix) {
@@ -418,6 +435,7 @@
       }
     }
     function getCode() {
+      zyqz = document.getElementById('qz').value
       useUnit = document.getElementById('useUnit').value
       usePug = document.getElementById('usePug').value == 'pug'
       // console.log(checkArr)
