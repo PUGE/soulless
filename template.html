@@ -383,13 +383,8 @@
       // 判断使用的单位
       if (useUnit === 'px') {
         const left = element.bounds.relativeLeft !== undefined ? element.bounds.relativeLeft : element.bounds.left + 'px'
-<<<<<<< HEAD
-        const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop:element.bounds.top + 'px'
-        newStyle += `.so-${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
-=======
         const top = element.bounds.relativeTop !== undefined ? element.bounds.relativeTop + '%'  :element.bounds.top + 'px'
         newStyle += `.${zyqz}${outCodeIndex++} {\r\n  left: ${left}px;\r\n  top: ${top}px;\r\n  z-index: ${checkArrLen - outCodeIndex};\r\n  color: ${element.textItem.color};\r\n}\r\n`
->>>>>>> 1ad889ae3b77d3b1e3ad21be8a7040a77208306a
       } else if (useUnit === 'percentage') {
         const left = element.bounds.percentageLeft !== undefined ? element.bounds.percentageLeft + '%': element.bounds.left + 'px'
         const top = element.bounds.percentageTop !== undefined ? element.bounds.percentageTop + '%': element.bounds.top + 'px'
